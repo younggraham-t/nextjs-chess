@@ -1,24 +1,35 @@
 "use client";
-import { MouseEvent, useState } from "react";
+import { MouseEvent, SetStateAction, Dispatch, useState, forwardRef, useImperativeHandle } from "react";
 import { xTranslations, yTranslations, pieceTypes } from "./square-tw-classes";
 import clsx from "clsx";
 import {HandleSquareClickedProps} from "./board-layout";
 
 export type SquareProps = {
-    lastMove?: boolean,
+    id: string,
     piece?: string,
     positionX: number,
     positionY: number,
     handleSquareClicked: (squareClicked: HandleSquareClickedProps) => void,
 }
 
-export default function Square(props: SquareProps) {
+
+export type Ref = {
+    setHover: Dispatch<SetStateAction<boolean>>,
+
+};
+
+export default forwardRef<Ref, SquareProps>(function Square(props: SquareProps, ref) {
     const [ highlight, setHighlight ] = useState<boolean>(false);
     const [ hover, setHover ] = useState<boolean>(false);
-    const { lastMove, piece, positionX, positionY } = props;
+    const [ piece, setPiece ] = useState<string | undefined>(props.piece);
+    const { positionX, positionY } = props;
+
+    useImperativeHandle(ref, () => ({
+        setHover,
+    }));
 
     const handleRightClickEvent = (e: MouseEvent<HTMLDivElement>) => {
-        console.log(`square ${positionX}, ${positionY} right click`);
+        // console.log(`square ${positionX}, ${positionY} right click`);
         setHighlight(!highlight);
         e.preventDefault();
     };
@@ -26,9 +37,11 @@ export default function Square(props: SquareProps) {
     const handleLeftClickEvent = (e: MouseEvent<HTMLDivElement>) => {
         console.log(`square ${positionX}, ${positionY} left click`);
         props.handleSquareClicked({
+            id: props.id,
             positionX: positionX,
             positionY: positionY,
             piece: piece,
+            setPiece: setPiece,
             setHover: setHover,
         });
         e.preventDefault();
@@ -41,15 +54,17 @@ export default function Square(props: SquareProps) {
 
     return (
         <div className={clsx(
-            `w-[12.5%] h-[12.5%] bg-cover transform ${className}`,
+            `w-[12.5%] h-[12.5%] absolute bg-cover transform ${className}`,
                     {
-                         "bg-lime-400": lastMove,
                          "bg-red-500": highlight,
                          "bg-lime-300": hover,
                     }
             )}
             onClick={handleLeftClickEvent} 
-            onContextMenu={handleRightClickEvent}>
+            onContextMenu={handleRightClickEvent}
+            id={props.id}
+            ref={ref}
+        >
         </div>
     )
-}
+})
