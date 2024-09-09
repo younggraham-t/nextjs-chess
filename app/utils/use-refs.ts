@@ -1,9 +1,9 @@
 import { useRef } from "react"
-import { Ref } from "../ui/board/square" 
+import {SquareRef } from "../ui/board/square" 
 export const useRefs = () => {
-  const refsByKey = useRef<Record<string,Ref | null>>({})
+  const refsByKey = useRef<Record<string,SquareRef | null>>({})
 
-  const setRef = (element: Ref | null, key: string) => {
+  const setRef = (element:SquareRef | null, key: string) => {
     refsByKey.current[key] = element;
   }
 

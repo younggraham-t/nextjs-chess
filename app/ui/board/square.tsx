@@ -13,24 +13,33 @@ export type SquareProps = {
 }
 
 
-export type Ref = {
+export type SquareRef = {
     setHover: Dispatch<SetStateAction<boolean>>,
-    setPiece: Dispatch<SetStateAction<string | undefined>>,
+    handleSetPiece: (piece: string | undefined, ref: SquareRef) => void,
     setLegalMove: Dispatch<SetStateAction<boolean>>,
+    piece?: string,
+    id: string,
 
 };
 
-export default forwardRef<Ref, SquareProps>(function Square(props: SquareProps, ref) {
+export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareProps, ref) {
     const [ highlight, setHighlight ] = useState<boolean>(false);
     const [ hover, setHover ] = useState<boolean>(false);
     const [ piece, setPiece ] = useState<string | undefined>(props.piece);
     const [ isLegalMove, setLegalMove ] = useState<boolean>(false);
     const { positionX, positionY } = props;
 
+    const handleSetPiece = (piece: string | undefined, ref: SquareRef) => {
+        setPiece(piece);
+        ref.piece = piece;
+    }
+
     useImperativeHandle(ref, () => ({
         setHover,
-        setPiece,
-        setLegalMove
+        handleSetPiece,
+        setLegalMove,
+        piece,
+        id: props.id,
     }));
 
     const handleRightClickEvent = (e: MouseEvent<HTMLDivElement>) => {
@@ -69,7 +78,6 @@ export default forwardRef<Ref, SquareProps>(function Square(props: SquareProps, 
             onClick={handleLeftClickEvent} 
             onContextMenu={handleRightClickEvent}
             id={props.id}
-            ref={ref}
         >
             {
 			isLegalMove && 

@@ -1,13 +1,15 @@
 // import {HandleSquareClickedProps, Move} from "@/app/ui/board/board-layout";
-import {Ref} from "@/app/ui/board/square";
+import {SquareRef} from "@/app/ui/board/square";
+import { Position, SquareStart } from "./posistions";
 
-export const removeHighlights = (refsByKey: Record<string, Ref | null>) => {
+
+export const removeHighlights = (refsByKey: Record<string,SquareRef | null>) => {
     for (const [key, value] of Object.entries(refsByKey)) {
         if (value) value.setHover(false);
     }
 }
 
-export const removeLegalMoves = (refsByKey: Record<string, Ref | null>) => {
+export const removeLegalMoves = (refsByKey: Record<string,SquareRef | null>) => {
     for (const [key, value] of Object.entries(refsByKey)) {
             if (value) value.setLegalMove(false);
     }
@@ -39,4 +41,26 @@ export const  moveStringToMove = (move: string) => {
     }
     return {from, to}
     
+}
+
+
+export const endTurn = (position: Position) => {
+    
+}
+
+export const getSquares = (squareRefs : Record<string, SquareRef | null>) => {
+    const output = Array<SquareStart>();
+    for (let y = 8; y >= 1; y--) {
+        for (let x = 1; x <= 8; x++) {
+            // console.log(squareRefs[`${x}${y}`].piece);
+            const square = {
+                x,
+                y,
+                piece: squareRefs[`${x}${y}`]?.piece,
+            }
+            output.push(square);
+        }
+    } 
+    // console.log(output);
+    return output;
 }
