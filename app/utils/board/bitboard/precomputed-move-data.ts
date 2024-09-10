@@ -100,7 +100,7 @@ export class PrecomputedMoveData {
 			for (const knightJumpDelta of allKnightJumps) {
 				const knightJumpSquare = squareIndex + knightJumpDelta;
 				if (knightJumpSquare >= 0 && knightJumpSquare < 64) {
-					const knightSquareY = knightJumpSquare / 8;
+					const knightSquareY = Math.floor(knightJumpSquare / 8);
 					const knightSquareX = knightJumpSquare - knightSquareY * 8;
 					// Ensure knight has moved max of 2 squares on x/y axis (to reject indices that have wrapped around side of board)
 					const maxCoordMoveDst = Math.max (Math.abs (x - knightSquareX), Math.abs (y - knightSquareY));
@@ -124,7 +124,7 @@ export class PrecomputedMoveData {
 			for (const kingMoveDelta of PrecomputedMoveData.directionOffsets) {
 				const kingMoveSquare = squareIndex + kingMoveDelta;
 				if (kingMoveSquare >= 0 && kingMoveSquare < 64) {
-					const kingSquareY = kingMoveSquare / 8;
+					const kingSquareY = Math.floor(kingMoveSquare / 8);
 					const kingSquareX = kingMoveSquare - kingSquareY * 8;
 					// Ensure king has moved max of 1 square on x/y axis (to reject indices that have wrapped around side of board)
 					const maxCoordMoveDst = Math.max (Math.abs (x - kingSquareX), Math.abs (y - kingSquareY));

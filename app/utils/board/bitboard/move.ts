@@ -18,8 +18,8 @@ export default class Move {
 	private flagMask = 0b1111000000000000;
 
 
-    constructor(from: number, to: number, flags: number) {
-        this.move = ((flags & 0xf) <<12) | ((from & 0x3f) << 6) | (to & 0x3f);
+    constructor(from: number, to: number, flags = 0) {
+        this.move = ((flags & 0xf) <<12) | ((to & 0x3f) << 6) | (from & 0x3f);
     }
 
     getStartSquare() {
@@ -27,7 +27,7 @@ export default class Move {
     }
 
     getTargetSquare() {
-        return this.move & this.targetSquareMask;
+        return (this.move & this.targetSquareMask) >> 6;
     }
 
     getMoveFlag() {

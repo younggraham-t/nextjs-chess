@@ -9,7 +9,7 @@ export default class Piece {
     static rook: number = 6; //00110
     static queen: number = 7; //00111
 
-    static white: number = 8; //10000
+    static white: number = 8; //01000
     static black: number = 16; //10000
 
     static typeMask = 0b00111;

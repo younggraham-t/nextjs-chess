@@ -1,4 +1,5 @@
 import Coord from "./coord";
+import { SquareStart } from "../posistions";
 
 export default class BoardRepresentation {
     /*
@@ -10,7 +11,7 @@ export default class BoardRepresentation {
     static rankNames: Array<string> = ["1", "2", "3", "4", "5", "6", "7", "8"]
 
     static getRankIndex(squareIndex: number) {
-        return squareIndex >> 3;
+        return (squareIndex >> 3) & 0b000111 ;
     }
 
     static getFileIndex(squareIndex: number) {
@@ -22,13 +23,24 @@ export default class BoardRepresentation {
         return rankIndex * 8 + fileIndex;
     }
 
+    static squareStartToIndex(square: SquareStart) {
+        const rankIndex = square.y - 1;
+        const fileIndex = square.x - 1;
+
+        return this.getIndexFromCoord(rankIndex, fileIndex);
+
+    }
+
     static coordFromIndex(squareIndex: number) {
         return new Coord(this.getFileIndex(squareIndex), this.getRankIndex(squareIndex))
     }
     
     static getSquareNameFromIndex(squareIndex: number) {
+        // console.log(squareIndex);
         const file = this.getFileIndex(squareIndex);
         const rank = this.getRankIndex(squareIndex);
+        // console.log(file);
+        // console.log(rank);
         return `${BoardRepresentation.fileNames[file]}${BoardRepresentation.rankNames[rank]}`
     }
     

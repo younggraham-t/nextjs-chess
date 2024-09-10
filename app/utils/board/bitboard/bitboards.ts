@@ -49,8 +49,9 @@ export default class BitBoard {
     constructor(fen: string) {
         // console.log(this.rooks.toString(2));
         const position = fenToPosition(fen);
-        let i = 63;
         for (const square of position.squares) {
+            const squareIndex = BoardRepresentation.squareStartToIndex(square);
+            
             let piece = 0;
             if (square.piece) {
                 const pieceColor = square.piece?.slice(0,1);
@@ -64,33 +65,32 @@ export default class BitBoard {
                 // console.log(pieceColorIndex);
                     if (pieceType == "p") {
                         piece |= Piece.pawn;
-                        this.pawns[pieceColorIndex].addPieceAtSquare(i); 
+                        this.pawns[pieceColorIndex].addPieceAtSquare(squareIndex); 
                     }
                     if (pieceType == "n") {
                         piece |= Piece.knight;
-                        this.knights[pieceColorIndex].addPieceAtSquare(i);
+                        this.knights[pieceColorIndex].addPieceAtSquare(squareIndex);
                     }
                     if (pieceType == "b") {
                         piece |= Piece.bishop;
-                        this.bishops[pieceColorIndex].addPieceAtSquare(i);
+                        this.bishops[pieceColorIndex].addPieceAtSquare(squareIndex);
                     }
                     if (pieceType == "r") {
                         piece |= Piece.rook;
-                        this.rooks[pieceColorIndex].addPieceAtSquare(i);
+                        this.rooks[pieceColorIndex].addPieceAtSquare(squareIndex);
                     }
                     if (pieceType == "q") {
                         piece |= Piece.queen;
-                        this.queens[pieceColorIndex].addPieceAtSquare(i);
+                        this.queens[pieceColorIndex].addPieceAtSquare(squareIndex);
                     }
                     if (pieceType == "k") {
                         // console.log(`king ${piece}`)
                         piece |= Piece.king;
                         // console.log(`king2 ${piece}`)
-                        this.kings[pieceColorIndex] = piece;
+                        this.kings[pieceColorIndex] = squareIndex;
                     }
             }
-            this.squares[i] = piece;
-            i--;
+            this.squares[squareIndex] = piece;
         }
         this.activeColor = position.activeColor == GameColor.white ? Piece.white : Piece.black;
         this.whiteToMove = this.activeColor == Piece.white ? true : false;
