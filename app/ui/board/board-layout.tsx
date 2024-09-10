@@ -29,7 +29,10 @@ export default function BoardLayout(props: {position: Position}) {
 
     useEffect(() => { 
         const board = new BitBoard(positionToFen(position));
-        setValidMoves(new MoveGenerator().generateMoves(board));
+        const moveGenerator = new MoveGenerator();
+        const moves = moveGenerator.generateMoves(board);
+        console.log(moves);
+        setValidMoves(moves);
     }, [position]);
 
     const handleSetPosition = (squareRefs?: Record<string, SquareRef | null>, 
@@ -101,8 +104,8 @@ export default function BoardLayout(props: {position: Position}) {
                }
             }
             catch (err) {
-                console.error("Move not found")
-                return
+                console.error(`Move ${move} not found`)
+                continue;
             }
 
         }
