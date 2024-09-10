@@ -56,7 +56,7 @@ export class PrecomputedMoveData {
     }
 
 	// Initialize lookup data
-	private static _initialize = (() => {
+	public static _initialize() {
 		PrecomputedMoveData.pawnAttacksWhite = new Array(64);
 		PrecomputedMoveData.pawnAttacksBlack = new Array(63);
 		PrecomputedMoveData.numSquaresToEdge = new Array(8);
@@ -77,7 +77,7 @@ export class PrecomputedMoveData {
 
 		for (let squareIndex = 0; squareIndex < 64; squareIndex++) {
 
-			const y = squareIndex / 8;
+			const y = Math.floor(squareIndex / 8);
 			const x = squareIndex - y * 8;
 
 			const north = 7 - y;
@@ -221,4 +221,5 @@ export class PrecomputedMoveData {
 			}
 		}
 	}
-)};
+}
+PrecomputedMoveData._initialize();
