@@ -26,6 +26,12 @@ export default class BoardRepresentation {
         return new Coord(this.getFileIndex(squareIndex), this.getRankIndex(squareIndex))
     }
     
+    static getSquareNameFromIndex(squareIndex: number) {
+        const file = this.getFileIndex(squareIndex);
+        const rank = this.getRankIndex(squareIndex);
+        return `${BoardRepresentation.fileNames[file]}${BoardRepresentation.rankNames[rank]}`
+    }
+    
 
     static isLightSquare(squareIndex: number) {
         const file = this.getFileIndex(squareIndex);

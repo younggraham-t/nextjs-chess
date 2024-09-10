@@ -2,6 +2,8 @@ import BitBoard from "./bitboards";
 import { startFen } from "../fen";
 import Move from "./move";
 import Piece from "./piece";
+import {PrecomputedMoveData} from "./precomputed-move-data";
+import BoardRepresentation from "./board-representation";
 
 export default class MoveGenerator {
     private board: BitBoard = new BitBoard(startFen);
@@ -18,6 +20,7 @@ export default class MoveGenerator {
     private friendlyColorIndex: number = BitBoard.whiteIndex;
     private opponentColorIndex: number = BitBoard.blackIndex;
 
+    static pmd = new PrecomputedMoveData();
 
 
     generateMoves(board: BitBoard, includeQueitMoves = true) {
@@ -26,7 +29,13 @@ export default class MoveGenerator {
 
         this.initiateVariables();
 
-        this.generateKingMoves();
+        // return ["e2e4", "e2e3", "d2d3", "d2d4", "c2c3", "c2c4"]
+         this.generateKingMoves();
+
+         return this.moves.map((move) => {
+             return `${BoardRepresentation.getSquareNameFromIndex(move.getStartSquare())}${BoardRepresentation.getSquareNameFromIndex(move.getTargetSquare())}`
+             
+         });
     }
 
     initiateVariables() {
@@ -39,6 +48,7 @@ export default class MoveGenerator {
     }
 
     generateKingMoves() {
+
 
     }
 }

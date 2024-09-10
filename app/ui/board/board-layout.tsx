@@ -7,6 +7,7 @@ import {removeHighlights, removeLegalMoves, moveStringToMove, getSquares} from "
 import {GameColor} from "@/app/page";
 import {positionToFen} from "@/app/utils/board/fen";
 import BitBoard from "@/app/utils/board/bitboard/bitboards";
+import MoveGenerator from "@/app/utils/board/bitboard/move-generator";
 
 
 export type HandleSquareClickedProps = {
@@ -21,13 +22,14 @@ export type HandleSquareClickedProps = {
 }
 
 export default function BoardLayout(props: {position: Position}) {
-    const validMoves = ["e2e4", "e2e3", "d2d3", "d2d4"]
+    const [ validMoves, setValidMoves ] = useState<Array<string>>([""]); 
     const {refsByKey, setRef} = useRefs();
     const [ curPiece, setCurPiece ] = useState<HandleSquareClickedProps | null>(null);
     const [ position, setPosition ] = useState<Position>(props.position);
 
     useEffect(() => { 
         const board = new BitBoard(positionToFen(position));
+        setValidMoves(new MoveGenerator().generateMoves(board));
     }, [position]);
 
     const handleSetPosition = (squareRefs?: Record<string, SquareRef | null>, 
@@ -89,13 +91,19 @@ export default function BoardLayout(props: {position: Position}) {
 
         // display valid moves from clicked square
         for (const move of validMoves) {
-           const {from, to} = moveStringToMove(move);
-           if (from.x === clickedSquare.positionX && from.y === clickedSquare.positionY) {
-               const toId = `${to.x}${to.y}`;
-               // console.log(toId)
-               refsByKey[toId]?.setLegalMove(true);
-                             
-           }
+            try {
+                const {from, to} = moveStringToMove(move);
+               if (from.x === clickedSquare.positionX && from.y === clickedSquare.positionY) {
+                   const toId = `${to.x}${to.y}`;
+                   // console.log(toId)
+                   refsByKey[toId]?.setLegalMove(true);
+                                 
+               }
+            }
+            catch (err) {
+                console.error("Move not found")
+                return
+            }
 
         }
     
