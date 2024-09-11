@@ -1,12 +1,18 @@
 import BitBoard from "./bitboards";
-import { startFen } from "../fen";
-import Move from "./move";
+import Move, {Flag} from "./move";
 import Piece from "./piece";
 import {PrecomputedMoveData as pmd, PrecomputedMoveData} from "./precomputed-move-data";
 import BoardRepresentation from "./board-representation";
 
+export enum PromotionMode {
+    All,
+    QueenAndKnight,
+    QueenOnly,
+}
 export default class MoveGenerator {
-    private board: BitBoard = new BitBoard(startFen);
+    
+    private promotionsToGenerate: PromotionMode = PromotionMode.All;
+    private board: BitBoard;
     private genQuiets: boolean = true;
     private moves: Array<Move> = [];
 
@@ -23,22 +29,25 @@ export default class MoveGenerator {
     private PMD: PrecomputedMoveData = new PrecomputedMoveData();
 
     returnMoves(moves: Array<Move>) {
-        console.log(moves);
+        // console.log(moves);
          return moves.map((move) => {
              const startSquare = move.getStartSquare();
              const targetSquare = move.getTargetSquare();
              // console.log(targetSquare);
              const startSquareName = BoardRepresentation.getSquareNameFromIndex(startSquare);
              const targetSquareName = BoardRepresentation.getSquareNameFromIndex(targetSquare);
-             const output = startSquareName + targetSquareName;
+             const moveFlag = Flag.getFlagName(move.getMoveFlag());
+             const output = startSquareName + targetSquareName + moveFlag;
              return output 
          });
     }
 
-
-
-    generateMoves(board: BitBoard, includeQueitMoves = true) {
+    constructor(board: BitBoard) {
         this.board = board;
+
+    }
+
+    generateMoves(includeQueitMoves = true) {
         this.genQuiets = includeQueitMoves;
 
         this.initiateVariables();
@@ -51,13 +60,13 @@ export default class MoveGenerator {
          // }
          this.genSlidingMoves();
          this.genKnightMoves();
-         // this.genPawnMoves();
+         this.genPawnMoves();
 
-        return this.returnMoves(this.moves);
+        return this.moves;
     }
 
     initiateVariables() {
-        console.log(this.board);
+        // console.log(this.board);
         this.isWhiteToMove = this.board.activeColor === Piece.white;
         this.friendlyColor = this.board.activeColor;
         this.opponentColor = this.board.opponentColor;
@@ -185,7 +194,91 @@ export default class MoveGenerator {
     }
 
     genPawnMoves() {
+        const myPawns = this.board.pawns[this.friendlyColorIndex];
+        const pawnOffset = this.friendlyColor == Piece.white ? 8 : -8;
+        const startRank = this.friendlyColor == Piece.white ? 1 : 6;
+        const finalSquareBeforePromotion = this.friendlyColor == Piece.white ? 6 : 1;
 
+        const enPassantFile = (this.board.currentGameState >> 4 & 15);
+        let enPassantSquare = -1;
+        if (enPassantFile != 8) {
+            enPassantSquare = 8 * (this.board.whiteToMove ? 5 : 2) + enPassantFile; 
+        }
+
+        for (let i = 0; i < myPawns.size(); i++) {
+            const startSquare = myPawns.get(i);
+            const rank = BoardRepresentation.getRankIndex(startSquare);
+            const oneStepFromPromotion = rank == finalSquareBeforePromotion;
+
+
+            if (this.genQuiets) {
+                const squareOneForward = startSquare + pawnOffset;
+
+                if (this.board.squares[squareOneForward] == Piece.none) {
+                    if (true) { // TODO add pin check
+                        if (true) {//TODO add check check
+                            if (oneStepFromPromotion) {
+                                this.makePromotionMoves(startSquare, squareOneForward);
+                            }
+                            else {
+                                this.moves.push(new Move(startSquare, squareOneForward));
+                            }
+                        }
+                        if (rank == startRank) {
+                            const squareTwoForward = squareOneForward + pawnOffset;
+                            if(this.board.squares[squareTwoForward] == Piece.none) {
+                                if (true) {//TODO add check check
+                                    this.moves.push(new Move(startSquare, squareTwoForward, Flag.pawnTwoForward));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            //pawn captures
+            for (let j = 0; j < 2; j++) {
+                //check if diagonals exist next to pawn
+                if (pmd.numSquaresToEdge[startSquare][pmd.pawnAttackDirections[this.friendlyColorIndex][j]] > 0) {
+                    const pawnCaptureDir = pmd.directionOffsets[pmd.pawnAttackDirections[this.friendlyColorIndex][j]];
+                    const targetSquare = startSquare + pawnCaptureDir;
+                    const targetSquarePiece = this.board.squares[targetSquare];
+
+                    //TODO add pin check
+                    
+
+                    if (Piece.isColor(targetSquarePiece, this.opponentColor)) {
+                        //TODO add check check
+                        
+                        if (oneStepFromPromotion) {
+                            this.makePromotionMoves(startSquare, targetSquare)
+                        }
+                        else {
+                            this.moves.push(new Move(startSquare, targetSquare));
+                        }
+                    }
+                    if (targetSquare === enPassantSquare) {
+                        const epCapturedPawnSquare = targetSquare + (this.board.whiteToMove ? -8 : 8);
+                        if (true) {//TODO add check check
+                            this.moves.push(new Move(startSquare, targetSquare, Flag.enPassantCapture));
+                        }
+
+                    }
+                }
+            }
+        }
+        
     }
+
+	makePromotionMoves(fromSquare: number, toSquare: number) {
+		this.moves.push(new Move (fromSquare, toSquare, Flag.promoteToQueen));
+		if (this.promotionsToGenerate == PromotionMode.All) {
+			this.moves.push(new Move (fromSquare, toSquare, Flag.promoteToKnight));
+			this.moves.push(new Move (fromSquare, toSquare, Flag.promoteToRook));
+			this.moves.push(new Move (fromSquare, toSquare, Flag.promoteToBishop));
+		} else if (this.promotionsToGenerate == PromotionMode.QueenAndKnight) {
+			this.moves.push(new Move (fromSquare, toSquare, Flag.promoteToKnight));
+		}
+
+	}
 
 }

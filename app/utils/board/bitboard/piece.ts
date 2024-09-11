@@ -43,6 +43,9 @@ export default class Piece {
 
     static toString(piece: number) {
        let string = ""
+       if (piece === Piece.none) {
+           return "";
+       }
        string += Piece.getColor(piece) === Piece.white ? "w" : "b";
        const pieceType = Piece.getPieceType(piece);
        if (pieceType === Piece.pawn) {

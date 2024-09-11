@@ -10,6 +10,25 @@ export default class BoardRepresentation {
     static fileNames: Array<string> = ["a", "b", "c", "d", "e", "f", "g", "h"]
     static rankNames: Array<string> = ["1", "2", "3", "4", "5", "6", "7", "8"]
 
+    static a1 = 0;
+    static b1 = 1;
+    static c1 = 2;
+    static d1 = 3;
+    static e1 = 4;
+    static f1 = 5;
+    static g1 = 6;
+    static h1 = 7;
+
+    static a8 = 56;
+    static b8 = 57;
+    static c8 = 58;
+    static d8 = 59;
+    static e8 = 60;
+    static f8 = 61
+    static g8 = 62;
+    static h8 = 63;
+
+
     static getRankIndex(squareIndex: number) {
         return (squareIndex >> 3) & 0b000111 ;
     }
@@ -31,6 +50,13 @@ export default class BoardRepresentation {
 
     }
 
+    static indexToSquareStart(index: number) {
+        const file = this.getFileIndex(index) + 1;
+        const rank = this.getRankIndex(index) + 1;
+
+        return {x: file, y: rank};
+    }
+
     static coordFromIndex(squareIndex: number) {
         return new Coord(this.getFileIndex(squareIndex), this.getRankIndex(squareIndex))
     }
@@ -43,6 +69,7 @@ export default class BoardRepresentation {
         // console.log(rank);
         return `${BoardRepresentation.fileNames[file]}${BoardRepresentation.rankNames[rank]}`
     }
+
     
 
     static isLightSquare(squareIndex: number) {
