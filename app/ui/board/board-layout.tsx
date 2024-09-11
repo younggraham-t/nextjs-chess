@@ -41,7 +41,7 @@ export default function BoardLayout(props: {position: Position}) {
         const board = new BitBoard(positionToFen(position));
         const moveGenerator = new MoveGenerator(board);
         const moves = moveGenerator.generateMoves();
-        console.log(moves);
+        console.log(moveGenerator.returnMoves(moves));
         console.log(position);
         setValidMoves(moves);
         removeHighlights(refsByKey, lastMove);
@@ -137,10 +137,50 @@ export default function BoardLayout(props: {position: Position}) {
             const clickedSquareRef = refsByKey[clickedSquare.id];
             let curPiecePiece = curPiece.piece;
             const curPieceColor = curPiecePiece.slice(0,1);
+            const curPieceType = curPiecePiece.slice(1);
 
             let castling = position.castling;
             let enPassant = "";
             let halfMove = position.halfMove;
+            //handle updating half move clock
+            if ((!clickedSquare.piece || curPieceType != "p") && position.activeColor === GameColor.black) {
+                halfMove++;
+    
+            }
+            //handle removing castling options
+            if (curPieceType == "r") {
+                switch (curPiece.id) {
+                    case "11":
+                        castling = castling.replace("Q", "");
+                         break;
+                    case "81":
+                        castling = castling.replace("K", "");
+                        break;
+                    case "18":
+                        castling = castling.replace("q", "");
+                        break;
+                    case "88":
+                        castling = castling.replace("k", "");
+                        break;
+                }
+            }
+            else if (curPieceType == "k") {
+                switch (curPieceColor) {
+                    case "w":
+                        castling = castling.replace("K", "");
+                        castling = castling.replace("Q", "");
+                        break;
+                    case "b":
+                        castling = castling.replace("k", "");
+                        castling = castling.replace("q", "");
+                        break;
+                }
+            }
+            if (castling == "") {
+                castling = "-";
+            }
+            
+
             //handle move flags
             if (clickedSquare.moveFlag) {
                 switch (clickedSquare.moveFlag) {
@@ -156,6 +196,35 @@ export default function BoardLayout(props: {position: Position}) {
                         }
                         break;
                     case Flag.castling:
+                        let rookToMoveId = "";
+                        let rookFinalLocation = "";
+                        switch (clickedSquare.id) {
+                            case "71":
+                                rookToMoveId = "81";
+                                rookFinalLocation = "61";
+                                break;
+                            case "31":
+                                rookToMoveId = "11";
+                                rookFinalLocation = "41";
+                                break;
+                            case "78":
+                                rookToMoveId = "88";
+                                rookFinalLocation = "68";
+                                break;
+                            case "38":
+                                rookToMoveId = "18";
+                                rookFinalLocation = "48";
+                                break;
+                        }
+                        const rookRef = refsByKey[rookToMoveId];
+                        const rookFinalLocationRef = refsByKey[rookFinalLocation];
+                        if (rookRef && rookFinalLocationRef) {
+                            const rook = refsByKey[rookToMoveId]?.piece;
+                            rookRef.handleSetPiece(undefined, rookRef);
+                            rookFinalLocationRef.handleSetPiece(rook, rookFinalLocationRef);
+
+                        }
+
                         break;
                     case Flag.promoteToQueen:
                         console.log(curPiece.piece)

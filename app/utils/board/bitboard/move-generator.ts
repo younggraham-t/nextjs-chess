@@ -96,11 +96,45 @@ export default class MoveGenerator {
                 this.moves.push(new Move(this.friendlyKingSquare, targetSquare))
 
                 //TODO add castling ability
+                if (!isCapture && true) {//TODO add check check
+                    //kingside
+                    if ((targetSquare == BoardRepresentation.f1 || targetSquare == BoardRepresentation.f8 ) && this.hasKingSideCastlingRight()) {
+                        const castleSquare = targetSquare + 1;
+                        if (this.board.squares[castleSquare] == Piece.none) {
+                            if (!false) {//TODO add check for if square is attacked
+                                this.moves.push(new Move(this.friendlyKingSquare, castleSquare, Flag.castling));
+                            }
+                        }
+                    }
+                    //queenside
+                    if ((targetSquare == BoardRepresentation.d1 || targetSquare == BoardRepresentation.d8) && this.hasQueenSideCastlingRight()) {
+                        const castleSquare = targetSquare - 1;
+                        if (this.board.squares[castleSquare] == Piece.none) {
+                            if (!false) {//TODO add check for if square is attacked
+                                this.moves.push(new Move(this.friendlyKingSquare, castleSquare, Flag.castling))
+                            }
+                        }
+                    }
+                }
             }
             
         }
 
     }
+
+
+	hasKingSideCastlingRight(){
+
+		const mask = (this.board.whiteToMove) ? 1 : 4;
+		return (this.board.currentGameState & mask) != 0;
+	}
+
+	hasQueenSideCastlingRight() {
+
+		const mask = (this.board.whiteToMove) ? 2 : 8;
+		return (this.board.currentGameState & mask) != 0;
+		
+	}
 
     genSlidingMoves() {
         const rooks = this.board.rooks[this.friendlyColorIndex];
