@@ -22,7 +22,7 @@ export type LastMoveRefs = {
 export default function BoardLayout(props: {position: Position}) {
     const [ validMoves, setValidMoves ] = useState<Array<Move>>([]); 
     const {refsByKey, setRef} = useRefs();
-    const [ curSquare, setCurPiece ] = useState<string | null>(null);
+    const [ curSquare, setCurSquare ] = useState<string | null>(null);
     const [ position, setPosition ] = useState<Position>(props.position);
     const [ lastMove, setLastMove ] = useState<LastMoveRefs>();
     const [ enpassantPawn, setEnpassantPawn ] = useState<SquareRef | null>(null);
@@ -91,7 +91,7 @@ export default function BoardLayout(props: {position: Position}) {
         if (clickedSquareRef.piece) {
             const curPieceColor = Piece.isColor(clickedSquareRef.piece, Piece.white) ? GameColor.white : GameColor.black
             //set curSquare for future checks
-            setCurPiece(clickedSquareId);
+            setCurSquare(clickedSquareId);
 
             // set hover on clicked square
 
@@ -192,26 +192,15 @@ export default function BoardLayout(props: {position: Position}) {
                         }
                         break;
                     case Flag.castling:
-                        let rookToMoveId = "";
-                        let rookFinalLocation = "";
-                        switch (clickedSquare.id) {
-                            case "71":
-                                rookToMoveId = "81";
-                                rookFinalLocation = "61";
-                                break;
-                            case "31":
-                                rookToMoveId = "11";
-                                rookFinalLocation = "41";
-                                break;
-                            case "78":
-                                rookToMoveId = "88";
-                                rookFinalLocation = "68";
-                                break;
-                            case "38":
-                                rookToMoveId = "18";
-                                rookFinalLocation = "48";
-                                break;
+                        const squareIdToRookInfo: Record<string, Record<string, string>> = {
+                        "71": {rook: "81", moveTo: "61"},
+                        "31": {rook: "11", moveTo: "41"},
+                        "78": {rook: "88", moveTo: "68"},
+                        "38": {rook: "18", moveTo: "48"},
+
                         }
+                        const rookToMoveId = squareIdToRookInfo[clickedSquare.id]["rook"];
+                        const rookFinalLocation = squareIdToRookInfo[clickedSquare.id]["moveTo"];
                         const rookRef = refsByKey[rookToMoveId];
                         const rookFinalLocationRef = refsByKey[rookFinalLocation];
                         if (rookRef && rookFinalLocationRef) {
@@ -234,21 +223,17 @@ export default function BoardLayout(props: {position: Position}) {
                         break;
                 }
             }
-            //put curSquare on new square
+            //put curPiece on new square
             clickedSquare.handleSetPiece(curPiece, clickedSquare)
             const lastMoveStart = clickedSquare;
-            //remove curSquare from old square
+            //remove piece from old square
             curSquareRef.handleSetPiece(Piece.none, curSquareRef);
             const lastMoveEnd = curSquareRef;
 
-            if (lastMoveStart && lastMoveEnd) {
-                // console.log(lastMoveEnd)
-                newLastMove = {lastMoveStart, lastMoveEnd}
-                setLastMove(newLastMove);
-                // console.log(lastMove);
-            }
-            //set curSquare to null
-            setCurPiece(null);
+            newLastMove = {lastMoveStart, lastMoveEnd}
+            setLastMove(newLastMove);
+            //set curPiece to null
+            setCurSquare(null);
             removeLegalMoves(refsByKey);
             const newActiveColor = position.activeColor === GameColor.white ? GameColor.black : GameColor.white;
             const newFullMove = newActiveColor === GameColor.white ? position.fullMove + 1 : position.fullMove;
