@@ -7,7 +7,7 @@ import BoardRepresentation from "./bitboard/board-representation";
 export const startFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 export const fenToPosition = (fen: string) => {
     const squares = new Array<SquareStart>();
-    console.log(fen);
+    // console.log(fen);
 
     const fenParts = fen.split(" ");
     const ranks = fenParts[0].split("/");
@@ -20,7 +20,7 @@ export const fenToPosition = (fen: string) => {
     let x = 1;
     let y = 8;
     for(const rank of ranks) {
-        console.log(rank);
+        // console.log(rank);
         for(const char of rank) {
             if (!isNaN(parseInt(char))) {
                 for (let i = 0; i < parseInt(char); i++) {
@@ -35,16 +35,16 @@ export const fenToPosition = (fen: string) => {
                 }
                 continue;
             }
-            console.log(char);
+            // console.log(char);
             const pieceName = char.toUpperCase() == char ? `w${char.toLowerCase()}` : `b${char}`;
-            console.log(pieceName);
+            // console.log(pieceName);
             const piece = Piece.pieceNameToPiece(pieceName) 
             const newSquare = {
                 x: x,
                 y: y,
                 piece: piece, 
             }  
-            console.log(newSquare);
+            // console.log(newSquare);
             squares.push(newSquare);
             x++;
         }

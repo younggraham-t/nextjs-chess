@@ -76,7 +76,7 @@ export default class BitBoard {
             
             const piece = square.piece;
             const pieceColorIndex = Piece.isColor(piece, Piece.white) ? 0 : 1;
-            console.log(`squareIndex ${squareIndex} piece ${Piece.toString(piece)} colorIndex ${pieceColorIndex}`)
+            // console.log(`squareIndex ${squareIndex} piece ${Piece.toString(piece)} colorIndex ${pieceColorIndex}`)
             switch (Piece.getPieceType(piece)) {
                 case Piece.pawn:
                     this.pawns[pieceColorIndex].addPieceAtSquare(squareIndex)

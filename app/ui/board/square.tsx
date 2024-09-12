@@ -11,7 +11,7 @@ export type SquareProps = {
     piece: number,
     positionX: number,
     positionY: number,
-    handleSquareClicked: (squareClicked: HandleSquareClickedProps) => void,
+    handleSquareClicked: (squareClicedId: string) => void,
 }
 
 
@@ -22,6 +22,8 @@ export type SquareRef = {
     setMoveFlag: Dispatch<SetStateAction<number | undefined>>,
     piece: number,
     id: string,
+    isLegalMove: boolean,
+    moveFlag: number | undefined,
 
 };
 
@@ -46,6 +48,8 @@ export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareP
         setMoveFlag,
         piece,
         id: props.id,
+        isLegalMove,
+        moveFlag,
     }));
 
     const handleRightClickEvent = (e: MouseEvent<HTMLDivElement>) => {
@@ -64,16 +68,7 @@ export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareP
             setShowPromotionMenu(false);
         }
         
-        props.handleSquareClicked({
-            id: props.id,
-            positionX: positionX,
-            positionY: positionY,
-            piece: piece,
-            isLegalMove: isLegalMove,
-            setPiece: setPiece,
-            setHover: setHover,
-            moveFlag: moveFlag,
-        });
+        props.handleSquareClicked(props.id);
         e.preventDefault();
     };
 
