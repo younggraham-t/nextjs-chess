@@ -74,43 +74,28 @@ export default class BitBoard {
         for (const square of position.squares) {
             const squareIndex = BoardRepresentation.squareStartToIndex(square);
             
-            let piece = 0;
-            if (square.piece) {
-                const pieceColor = square.piece?.slice(0,1);
-                // console.log(pieceColor);
-                const pieceType = square.piece?.slice(1).toLowerCase();
-                piece = pieceColor === "w" ? Piece.white : Piece.black;
-                const pieceColorIndex = pieceColor == "w" ? BitBoard.whiteIndex : BitBoard.blackIndex;
-                // console.log(i);
-                // console.log(pieceType);
-                // console.log(pieceColor);
-                // console.log(pieceColorIndex);
-                    if (pieceType == "p") {
-                        piece |= Piece.pawn;
-                        this.pawns[pieceColorIndex].addPieceAtSquare(squareIndex); 
-                    }
-                    if (pieceType == "n") {
-                        piece |= Piece.knight;
-                        this.knights[pieceColorIndex].addPieceAtSquare(squareIndex);
-                    }
-                    if (pieceType == "b") {
-                        piece |= Piece.bishop;
-                        this.bishops[pieceColorIndex].addPieceAtSquare(squareIndex);
-                    }
-                    if (pieceType == "r") {
-                        piece |= Piece.rook;
-                        this.rooks[pieceColorIndex].addPieceAtSquare(squareIndex);
-                    }
-                    if (pieceType == "q") {
-                        piece |= Piece.queen;
-                        this.queens[pieceColorIndex].addPieceAtSquare(squareIndex);
-                    }
-                    if (pieceType == "k") {
-                        // console.log(`king ${piece}`)
-                        piece |= Piece.king;
-                        // console.log(`king2 ${piece}`)
-                        this.kings[pieceColorIndex] = squareIndex;
-                    }
+            const piece = square.piece;
+            const pieceColorIndex = Piece.isColor(piece, Piece.white) ? 0 : 1;
+            console.log(`squareIndex ${squareIndex} piece ${Piece.toString(piece)} colorIndex ${pieceColorIndex}`)
+            switch (Piece.getPieceType(piece)) {
+                case Piece.pawn:
+                    this.pawns[pieceColorIndex].addPieceAtSquare(squareIndex)
+                    break;
+                case Piece.knight:
+                    this.knights[pieceColorIndex].addPieceAtSquare(squareIndex)
+                    break;
+                case Piece.bishop:
+                    this.bishops[pieceColorIndex].addPieceAtSquare(squareIndex)
+                    break;
+                case Piece.rook:
+                    this.rooks[pieceColorIndex].addPieceAtSquare(squareIndex)
+                    break;
+                case Piece.queen:
+                    this.queens[pieceColorIndex].addPieceAtSquare(squareIndex)
+                    break;
+                case Piece.king:
+                    this.kings[pieceColorIndex] = squareIndex;
+                    break
             }
             this.squares[squareIndex] = piece;
         }
