@@ -4,36 +4,39 @@ import { xTranslations, yTranslations, pieceTypes } from "./square-tw-classes";
 import clsx from "clsx";
 import {HandleSquareClickedProps} from "./board-layout";
 import PromotionSelection from "./promotion-selection";
+import Piece from "@/app/utils/board/bitboard/piece";
 
 export type SquareProps = {
     id: string,
-    piece?: string,
+    piece: number,
     positionX: number,
     positionY: number,
-    handleSquareClicked: (squareClicked: HandleSquareClickedProps) => void,
+    handleSquareClicked: (squareClicedId: string) => void,
 }
 
 
 export type SquareRef = {
     setHover: Dispatch<SetStateAction<boolean>>,
-    handleSetPiece: (piece: string | undefined, ref: SquareRef) => void,
+    handleSetPiece: (piece: number, ref: SquareRef) => void,
     setLegalMove: Dispatch<SetStateAction<boolean>>,
     setMoveFlag: Dispatch<SetStateAction<number | undefined>>,
-    piece?: string,
+    piece: number,
     id: string,
+    isLegalMove: boolean,
+    moveFlag: number | undefined,
 
 };
 
 export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareProps, ref) {
     const [ highlight, setHighlight ] = useState<boolean>(false);
     const [ hover, setHover ] = useState<boolean>(false);
-    const [ piece, setPiece ] = useState<string | undefined>(props.piece);
+    const [ piece, setPiece ] = useState<number>(props.piece);
     const [ isLegalMove, setLegalMove ] = useState<boolean>(false);
     const [ moveFlag, setMoveFlag ] = useState<number>();
     const [ showPromotionMenu, setShowPromotionMenu ] = useState<boolean>(false);
     const { positionX, positionY } = props;
 
-    const handleSetPiece = (piece: string | undefined, ref: SquareRef) => {
+    const handleSetPiece = (piece: number, ref: SquareRef) => {
         setPiece(piece);
         ref.piece = piece;
     }
@@ -45,6 +48,8 @@ export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareP
         setMoveFlag,
         piece,
         id: props.id,
+        isLegalMove,
+        moveFlag,
     }));
 
     const handleRightClickEvent = (e: MouseEvent<HTMLDivElement>) => {
@@ -63,16 +68,7 @@ export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareP
             setShowPromotionMenu(false);
         }
         
-        props.handleSquareClicked({
-            id: props.id,
-            positionX: positionX,
-            positionY: positionY,
-            piece: piece,
-            isLegalMove: isLegalMove,
-            setPiece: setPiece,
-            setHover: setHover,
-            moveFlag: moveFlag,
-        });
+        props.handleSquareClicked(props.id);
         e.preventDefault();
     };
 
@@ -83,7 +79,8 @@ export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareP
         // setPromotionMenu(newPromotionMenu);
     })
 
-    let className = piece ? pieceTypes.get(piece) + " " : "";
+    const pieceClass = pieceTypes.get(Piece.toString(piece));
+    let className = pieceClass + " ";
     className += xTranslations.get(positionX) + " ";
     className += yTranslations.get(positionY);
 
@@ -102,13 +99,13 @@ export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareP
                 id={props.id}
             >
                 {
-                isLegalMove && !piece && 
+                isLegalMove && piece === Piece.none && 
                 <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="50" cy="50" r="20" fill="#262626" opacity="0.5"/>
                 </svg>
                 }
                 {
-                isLegalMove && piece &&
+                isLegalMove && piece != Piece.none &&
                 <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="50" cy="50" r="45" fill="none" stroke="#111827" strokeWidth="5" opacity="0.5"/>
                 </svg>

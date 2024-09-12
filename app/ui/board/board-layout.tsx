@@ -10,19 +10,9 @@ import BitBoard from "@/app/utils/board/bitboard/bitboards";
 import MoveGenerator from "@/app/utils/board/bitboard/move-generator";
 import Move, {Flag} from "@/app/utils/board/bitboard/move";
 import BoardRepresentation from "@/app/utils/board/bitboard/board-representation";
+import Piece from "@/app/utils/board/bitboard/piece";
 
 
-export type HandleSquareClickedProps = {
-    id: string,
-    positionX: number,
-    positionY: number,
-    piece?: string,
-    isLegalMove: boolean,
-    setPiece: Dispatch<SetStateAction<string | undefined>>,
-    setHover: Dispatch<SetStateAction<boolean>>,
-    moveFlag: number | undefined,
-
-}
 
 export type LastMoveRefs = {
     lastMoveStart: SquareRef,
@@ -32,7 +22,7 @@ export type LastMoveRefs = {
 export default function BoardLayout(props: {position: Position}) {
     const [ validMoves, setValidMoves ] = useState<Array<Move>>([]); 
     const {refsByKey, setRef} = useRefs();
-    const [ curPiece, setCurPiece ] = useState<HandleSquareClickedProps | null>(null);
+    const [ curSquare, setCurSquare ] = useState<string | null>(null);
     const [ position, setPosition ] = useState<Position>(props.position);
     const [ lastMove, setLastMove ] = useState<LastMoveRefs>();
     const [ enpassantPawn, setEnpassantPawn ] = useState<SquareRef | null>(null);
@@ -79,77 +69,80 @@ export default function BoardLayout(props: {position: Position}) {
         setPosition(newPosition);
     }
 
-    const handleSquareClicked = (clickedSquare: HandleSquareClickedProps) => {
-        console.log(clickedSquare.piece ? clickedSquare.piece : `${clickedSquare.positionX}${clickedSquare.positionY}`);
-        
+    const handleSquareClicked = (clickedSquareId: string) => {
+        const clickedSquareRef = refsByKey[clickedSquareId];
+        if (clickedSquareRef) {
+        console.log(Piece.toString(clickedSquareRef.piece) ? Piece.toString(clickedSquareRef.piece) : clickedSquareId);
+        const clickedSquareX = parseInt(clickedSquareId.slice(0,1));
+        const clickedSquareY = parseInt(clickedSquareId.slice(1));
         //remove highlights and legal move highlights
         removeLegalMoves(refsByKey);
         removeHighlights(refsByKey, lastMove) 
-        // check if the piece is a piece of the player's
-        // if (clickedSquare.piece.charAt(0) !== props.player.color) return
-        // check if it is the player's turn
 
         // console.log(clickedSquare.isLegalMove)
         //check if clickedSquare is a legal move and make that move
-        if (clickedSquare.isLegalMove) {
-            handleMakeMove(clickedSquare);
+        if (clickedSquareRef.isLegalMove && curSquare && refsByKey[curSquare]) {
+            const curSquareRef = refsByKey[curSquare];
+            handleMakeMove(clickedSquareRef, curSquareRef);
             return;
         }
 
         // check if the clicked square has a piece
-        if (!clickedSquare.piece) return
-        const curPieceColor = clickedSquare.piece?.charAt(0).toLowerCase() === "w" ? GameColor.white : GameColor.black
-        //set curPiece for future checks
-        setCurPiece(clickedSquare);
+        if (clickedSquareRef.piece) {
+            const curPieceColor = Piece.isColor(clickedSquareRef.piece, Piece.white) ? GameColor.white : GameColor.black
+            //set curSquare for future checks
+            setCurSquare(clickedSquareId);
 
-        // set hover on clicked square
+            // set hover on clicked square
 
-        if (curPieceColor === position.activeColor) clickedSquare.setHover(true);
+            if (curPieceColor === position.activeColor) clickedSquareRef.setHover(true);
 
-        // display valid moves from clicked square
-        for (const move of validMoves) {
-               const from = BoardRepresentation.indexToSquareStart(move.getStartSquare());
-               const to = BoardRepresentation.indexToSquareStart(move.getTargetSquare());
-               const flag = move.getMoveFlag();
-               if (from.x === clickedSquare.positionX && from.y === clickedSquare.positionY) {
-                   const toId = `${to.x}${to.y}`;
-                   // console.log(toId)
-                   refsByKey[toId]?.setLegalMove(true);
-                   if (flag > 2 && flag < 7) {
-                       refsByKey[toId]?.setMoveFlag(3);
+            // display valid moves from clicked square
+            for (const move of validMoves) {
+                   const from = BoardRepresentation.indexToSquareStart(move.getStartSquare());
+                   const to = BoardRepresentation.indexToSquareStart(move.getTargetSquare());
+                   const flag = move.getMoveFlag();
+                   if (from.x === clickedSquareX && from.y === clickedSquareY) {
+                       const toId = `${to.x}${to.y}`;
+                       // console.log(toId)
+                       refsByKey[toId]?.setLegalMove(true);
+                       if (flag > 2 && flag < 7) {
+                           refsByKey[toId]?.setMoveFlag(3);
+                       }
+                       else {
+
+                          refsByKey[toId]?.setMoveFlag(flag);
+                       }
+
+                       // console.log(from)
+                        // console.log(toId); 
                    }
-                   else {
 
-                      refsByKey[toId]?.setMoveFlag(flag);
-                   }
-
-                   console.log(from)
-                    console.log(toId); 
-               }
-
+            }
+            
         }
-    
+        
+        }
     }
-    const handleMakeMove = (clickedSquare: HandleSquareClickedProps) => {
+    const handleMakeMove = (clickedSquare: SquareRef, curSquareRef: SquareRef) => {
         let newLastMove: LastMoveRefs;
-        if (curPiece && curPiece.piece) {
-            const curPieceRef = refsByKey[curPiece.id];
-            const clickedSquareRef = refsByKey[clickedSquare.id];
-            let curPiecePiece = curPiece.piece;
-            const curPieceColor = curPiecePiece.slice(0,1);
-            const curPieceType = curPiecePiece.slice(1);
+        if (curSquareRef && curSquareRef.piece) {
+            let curPiece = curSquareRef.piece;
+            const curPieceColor = Piece.getColor(curPiece);
+            const curPieceType = Piece.getPieceType(curPiece);
 
             let castling = position.castling;
             let enPassant = "";
             let halfMove = position.halfMove;
             //handle updating half move clock
-            if ((!clickedSquare.piece || curPieceType != "p") && position.activeColor === GameColor.black) {
+            if ((!clickedSquare.piece || curPieceType != Piece.pawn) && position.activeColor === GameColor.black) {
                 halfMove++;
     
             }
             //handle removing castling options
-            if (curPieceType == "r") {
-                switch (curPiece.id) {
+            if (curPieceType == Piece.rook) {
+                // console.log(curSquareRef.id)
+                switch (curSquareRef.id) {
                     case "11":
                         castling = castling.replace("Q", "");
                          break;
@@ -160,17 +153,18 @@ export default function BoardLayout(props: {position: Position}) {
                         castling = castling.replace("q", "");
                         break;
                     case "88":
+                        // console.log("black kingside")
                         castling = castling.replace("k", "");
                         break;
                 }
             }
-            else if (curPieceType == "k") {
+            else if (curPieceType == Piece.king) {
                 switch (curPieceColor) {
-                    case "w":
+                    case Piece.white:
                         castling = castling.replace("K", "");
                         castling = castling.replace("Q", "");
                         break;
-                    case "b":
+                    case Piece.black:
                         castling = castling.replace("k", "");
                         castling = castling.replace("q", "");
                         break;
@@ -186,81 +180,63 @@ export default function BoardLayout(props: {position: Position}) {
                 switch (clickedSquare.moveFlag) {
                     case Flag.pawnTwoForward: 
                         const epOffset = position.activeColor === GameColor.white ? -1 : 1
-                        enPassant = squareIdToString(clickedSquare.positionX, clickedSquare.positionY + epOffset);
+                        const clickedSquareX = parseInt(clickedSquare.id.slice(0,1));
+                        const clickedSquareY = parseInt(clickedSquare.id.slice(1));
+                        enPassant = squareIdToString(clickedSquareX, clickedSquareY + epOffset);
                         setEnpassantPawn(refsByKey[clickedSquare.id]);
                         break; 
                     case Flag.enPassantCapture:
                         if (enpassantPawn) {
-                            enpassantPawn.handleSetPiece(undefined, enpassantPawn);
+                            enpassantPawn.handleSetPiece(Piece.none, enpassantPawn);
                             setEnpassantPawn(null);
                         }
                         break;
                     case Flag.castling:
-                        let rookToMoveId = "";
-                        let rookFinalLocation = "";
-                        switch (clickedSquare.id) {
-                            case "71":
-                                rookToMoveId = "81";
-                                rookFinalLocation = "61";
-                                break;
-                            case "31":
-                                rookToMoveId = "11";
-                                rookFinalLocation = "41";
-                                break;
-                            case "78":
-                                rookToMoveId = "88";
-                                rookFinalLocation = "68";
-                                break;
-                            case "38":
-                                rookToMoveId = "18";
-                                rookFinalLocation = "48";
-                                break;
+                        const squareIdToRookInfo: Record<string, Record<string, string>> = {
+                        "71": {rook: "81", moveTo: "61"},
+                        "31": {rook: "11", moveTo: "41"},
+                        "78": {rook: "88", moveTo: "68"},
+                        "38": {rook: "18", moveTo: "48"},
+
                         }
+                        const rookToMoveId = squareIdToRookInfo[clickedSquare.id]["rook"];
+                        const rookFinalLocation = squareIdToRookInfo[clickedSquare.id]["moveTo"];
                         const rookRef = refsByKey[rookToMoveId];
                         const rookFinalLocationRef = refsByKey[rookFinalLocation];
                         if (rookRef && rookFinalLocationRef) {
-                            const rook = refsByKey[rookToMoveId]?.piece;
-                            rookRef.handleSetPiece(undefined, rookRef);
+                            const rook = rookRef.piece;
+                            rookRef.handleSetPiece(Piece.none, rookRef);
                             rookFinalLocationRef.handleSetPiece(rook, rookFinalLocationRef);
 
                         }
 
                         break;
                     case Flag.promoteToQueen:
-                        console.log(curPiece.piece)
-                        curPiecePiece = curPieceColor + "q"
-                        console.log(curPiecePiece)
-                        break;
-                    case Flag.promoteToRook:
+                        curPiece = curPieceColor + Piece.queen;
+                        console.log(curPiece)
                         break;
                     case Flag.promoteToKnight:
+                        break;
+                    case Flag.promoteToRook:
                         break;
                     case Flag.promoteToBishop:
                         break;
                 }
             }
-            let lastMoveStart: SquareRef;
-            let lastMoveEnd: SquareRef;
             //put curPiece on new square
-            if (clickedSquareRef) {
-                clickedSquareRef.handleSetPiece(curPiecePiece, clickedSquareRef)
-                lastMoveStart = clickedSquareRef;
-            }
-            //remove curPiece from old square
-            if (curPieceRef) {
-                curPieceRef.handleSetPiece(undefined, curPieceRef);
-                lastMoveEnd = curPieceRef;
-            }
+            clickedSquare.handleSetPiece(curPiece, clickedSquare)
+            const lastMoveStart = clickedSquare;
+            //remove piece from old square
+            curSquareRef.handleSetPiece(Piece.none, curSquareRef);
+            const lastMoveEnd = curSquareRef;
 
-            if (lastMoveStart && lastMoveEnd) {
-                // console.log(lastMoveEnd)
-                newLastMove = {lastMoveStart, lastMoveEnd}
-                setLastMove(newLastMove);
-                // console.log(lastMove);
-            }
+            newLastMove = {lastMoveStart, lastMoveEnd}
+            setLastMove(newLastMove);
             //set curPiece to null
-            setCurPiece(null);
+            setCurSquare(null);
             removeLegalMoves(refsByKey);
+
+            //update position
             const newActiveColor = position.activeColor === GameColor.white ? GameColor.black : GameColor.white;
             const newFullMove = newActiveColor === GameColor.white ? position.fullMove + 1 : position.fullMove;
             handleSetPosition(refsByKey, newActiveColor, castling, enPassant, halfMove, newFullMove );

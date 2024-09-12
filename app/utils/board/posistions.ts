@@ -3,7 +3,7 @@ import {GameColor} from "@/app/page"
 export type SquareStart = {
     x: number,
     y: number,
-    piece?: string,
+    piece: number,
 }
 
 export type Position = {

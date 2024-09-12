@@ -1,5 +1,6 @@
 
 export const pieceTypes = new Map<string, string>();
+pieceTypes.set("", "");
 pieceTypes.set("wp", "bg-wp");
 pieceTypes.set("wk", "bg-wk");
 pieceTypes.set("wb", "bg-wb");
