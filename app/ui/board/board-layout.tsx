@@ -72,7 +72,7 @@ export default function BoardLayout(props: {position: Position}) {
     const handleSquareClicked = (clickedSquareId: string) => {
         const clickedSquareRef = refsByKey[clickedSquareId];
         if (clickedSquareRef) {
-        console.log(clickedSquareRef.piece ? clickedSquareRef.piece : clickedSquareId);
+        console.log(Piece.toString(clickedSquareRef.piece) ? Piece.toString(clickedSquareRef.piece) : clickedSquareId);
         const clickedSquareX = parseInt(clickedSquareId.slice(0,1));
         const clickedSquareY = parseInt(clickedSquareId.slice(1));
         //remove highlights and legal move highlights
@@ -114,8 +114,8 @@ export default function BoardLayout(props: {position: Position}) {
                           refsByKey[toId]?.setMoveFlag(flag);
                        }
 
-                       console.log(from)
-                        console.log(toId); 
+                       // console.log(from)
+                        // console.log(toId); 
                    }
 
             }
@@ -235,6 +235,8 @@ export default function BoardLayout(props: {position: Position}) {
             //set curPiece to null
             setCurSquare(null);
             removeLegalMoves(refsByKey);
+
+            //update position
             const newActiveColor = position.activeColor === GameColor.white ? GameColor.black : GameColor.white;
             const newFullMove = newActiveColor === GameColor.white ? position.fullMove + 1 : position.fullMove;
             handleSetPosition(refsByKey, newActiveColor, castling, enPassant, halfMove, newFullMove );
