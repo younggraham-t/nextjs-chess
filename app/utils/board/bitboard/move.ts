@@ -8,6 +8,21 @@ export class Flag {
     static promoteToRook = 5;
     static promoteToBishop = 6;
     static pawnTwoForward = 7;
+
+    static getFlagName(flag: number) {
+        const flagsToNames: Record<number, string> = {
+            0: "",
+            1: "ep",
+            2: "c",
+            3: "pq",
+            4: "pn",
+            5: "pr",
+            6: "pb",
+            7: "ptf",
+        }    
+
+        return flagsToNames[flag];
+    }
 }
 export default class Move {
     

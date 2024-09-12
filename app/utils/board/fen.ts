@@ -1,8 +1,8 @@
 import { SquareStart, Position } from "@/app/utils/board/posistions";
 import { GameColor } from "@/app/page";
-// import BitBoard from "./bitboard/bitboards";
-// import Piece from "./bitboard/piece";
-// import BoardRepresentation from "./bitboard/board-representation";
+import BitBoard from "./bitboard/bitboards";
+import Piece from "./bitboard/piece";
+import BoardRepresentation from "./bitboard/board-representation";
 
 export const startFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 export const fenToPosition = (fen: string) => {
@@ -18,8 +18,8 @@ export const fenToPosition = (fen: string) => {
 
     let x = 1;
     let y = 8;
-    for (const rank of ranks) {
-        for (const char of rank) {
+    for(const rank of ranks) {
+        for(const char of rank) {
             if (!isNaN(parseInt(char))) {
                 for (let i = 0; i < parseInt(char); i++) {
                     const newSquare = {
@@ -68,7 +68,7 @@ export const positionToFen = (position: Position) => {
     let emptySquareCounter = 0;
     let currentRank = "";
     let curColCounter = 1;
-    for (const square of squares) {
+    for(const square of squares) {
         // console.log(curColCounter);
         if (!square.piece) {
             emptySquareCounter++;
@@ -98,35 +98,90 @@ export const positionToFen = (position: Position) => {
     return `${ranksStr} ${position.activeColor} ${position.castling} ${position.enPassant} ${position.halfMove} ${position.fullMove}`
 }
 
-// export const bitboardToPosition = (bitboard: BitBoard) => {
-//     const squares = bitboard.squares;
-//     const positionSquares = new Array<SquareStart>();
+// Get the fen string of the current position
+	export const currentFen = (board: BitBoard) => {
+		let fen = "";
+		for (let rank = 7; rank >= 0; rank--) {
+			let numEmptyFiles = 0;
+			for(let file = 0; file < 8; file++) {
+				const i = rank * 8 + file;
+				const piece = board.squares[i];
+				if (piece != 0) {
+					if (numEmptyFiles != 0) {
+						fen += numEmptyFiles;
+						numEmptyFiles = 0;
+					}
+					const isBlack = Piece.isColor(piece, Piece.black);
+					const pieceType = Piece.getPieceType(piece);
+					let pieceChar = ' ';
+					switch (pieceType) {
+						case Piece.rook:
+							pieceChar = 'R';
+							break;
+						case Piece.knight:
+							pieceChar = 'N';
+							break;
+						case Piece.bishop:
+							pieceChar = 'B';
+							break;
+						case Piece.queen:
+							pieceChar = 'Q';
+							break;
+						case Piece.king:
+							pieceChar = 'K';
+							break;
+						case Piece.pawn:
+							pieceChar = 'P';
+							break;
+					}
+					fen += (isBlack) ? pieceChar.toLowerCase() : pieceChar;
+				} else {
+					numEmptyFiles++;
+				}
 
-//     for (let i = squares.length - 1; i >= 0; i--) {
-//         const rank = BoardRepresentation.getRankIndex(i) + 1;
-//         const file = BoardRepresentation.getRankIndex(i) + 1;
-//         const piece = Piece.toString(squares[i]);
-//         positionSquares.push({
-//             x: file,
-//             y: rank,
-//             piece: piece,
-//         })
-//     }
-//     const activeColor = bitboard.whiteToMove ? GameColor.white : GameColor.black;
-//     let castlingRights = "";
-//     if ((0b1 & bitboard.currentGameState >> 0) === 1) {
-//         castlingRights += "K"; 
-//     }
-//     if ((0b1 & bitboard.currentGameState >> 1) === 1) {
-//         castlingRights += "Q";
-//     }
-//     if ((0b1 & bitboard.currentGameState >> 2) === 1) {
-//         castlingRights += "k";
-//     }
-//     if ((0b1 & bitboard.currentGameState >> 3) === 1) {
-//         castlingRights += "q";
-//     }
+			}
+			if (numEmptyFiles != 0) {
+				fen += numEmptyFiles;
+			}
+			if (rank != 0) {
+				fen += '/';
+			}
+		}
 
+		// Side to move
+		fen += ' ';
+		fen += (board.whiteToMove) ? 'w' : 'b';
 
+		// Castling
+		const whiteKingside = (board.currentGameState & 1) == 1;
+		const whiteQueenside = (board.currentGameState >> 1 & 1) == 1;
+		const blackKingside = (board.currentGameState >> 2 & 1) == 1;
+		const blackQueenside = (board.currentGameState >> 3 & 1) == 1;
+		fen += ' ';
+		fen += (whiteKingside) ? "K" : "";
+		fen += (whiteQueenside) ? "Q" : "";
+		fen += (blackKingside) ? "k" : "";
+		fen += (blackQueenside) ? "q" : "";
+		fen += ((board.currentGameState & 15) == 0) ? "-" : "";
 
-// }
+		// En-passant
+		fen += ' ';
+		const epFile = (board.currentGameState >> 4) & 15;
+		if (epFile == 0) {
+			fen += '-';
+		} else {
+			const fileName = BoardRepresentation.fileNames[epFile - 1].toString();
+			const epRank = (board.whiteToMove) ? 6 : 3;
+			fen += fileName + epRank;
+		}
+
+		// 50 move counter
+		fen += ' ';
+		fen += board.halfMoveCounter;
+
+		// Full-move count (should be one at start, and increase after each move by black)
+		fen += ' ';
+		fen += (board.fullMove / 2) + 1;
+
+		return fen;
+	}

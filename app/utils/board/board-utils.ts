@@ -1,26 +1,48 @@
 // import {HandleSquareClickedProps, Move} from "@/app/ui/board/board-layout";
 import {SquareRef} from "@/app/ui/board/square";
 import { Position, SquareStart } from "./posistions";
+import {LastMoveRefs} from "@/app/ui/board/board-layout";
 
 
-export const removeHighlights = (refsByKey: Record<string,SquareRef | null>) => {
+export const removeHighlights = (refsByKey: Record<string,SquareRef | null>, lastMove?: LastMoveRefs) => {
     for (const [key, value] of Object.entries(refsByKey)) {
         if (value) value.setHover(false);
+    }
+    if (lastMove) {
+        lastMove.lastMoveEnd.setHover(true);
+        lastMove.lastMoveStart.setHover(true);
     }
 }
 
 export const removeLegalMoves = (refsByKey: Record<string,SquareRef | null>) => {
     for (const [key, value] of Object.entries(refsByKey)) {
             if (value) value.setLegalMove(false);
+            if (value) value.setMoveFlag(null);
     }
 
+}
+
+export const squareIdToString = (x: number, y: number) => {
+    const numberToLetter: Record<number, string> = {
+        1: "a",
+        2: "b",
+        3: "c",
+        4: "d",
+        5: "e",
+        6: "f",
+        7: "g",
+        8: "h",
+    }
+
+    return `${numberToLetter[x]}${y}`
 }
 
 
 export const  moveStringToMove = (move: string) => {
     const fromStr = move.slice(0,2);
     // console.log(fromStr);
-    const toStr = move.slice(2);
+    const toStr = move.slice(2, 4);
+    const flag = move.slice(4);
     // console.log(toStr);
     const letterToNumber = new Map<string, number>();
     letterToNumber.set("a", 1);
@@ -39,14 +61,11 @@ export const  moveStringToMove = (move: string) => {
         x: letterToNumber.get(toStr.slice(0,1)),
         y: parseInt(toStr.slice(1)),
     }
-    return {from, to}
+    return {from, to, flag}
     
 }
 
 
-export const endTurn = (position: Position) => {
-    
-}
 
 export const getSquares = (squareRefs : Record<string, SquareRef | null>) => {
     const output = Array<SquareStart>();

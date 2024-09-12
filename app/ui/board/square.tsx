@@ -1,8 +1,9 @@
 "use client";
-import { MouseEvent, SetStateAction, Dispatch, useState, forwardRef, useImperativeHandle } from "react";
+import { MouseEvent, SetStateAction, Dispatch, useState, forwardRef, useImperativeHandle, ReactElement } from "react";
 import { xTranslations, yTranslations, pieceTypes } from "./square-tw-classes";
 import clsx from "clsx";
 import {HandleSquareClickedProps} from "./board-layout";
+import PromotionSelection from "./promotion-selection";
 
 export type SquareProps = {
     id: string,
@@ -17,6 +18,7 @@ export type SquareRef = {
     setHover: Dispatch<SetStateAction<boolean>>,
     handleSetPiece: (piece: string | undefined, ref: SquareRef) => void,
     setLegalMove: Dispatch<SetStateAction<boolean>>,
+    setMoveFlag: Dispatch<SetStateAction<number | undefined>>,
     piece?: string,
     id: string,
 
@@ -27,6 +29,8 @@ export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareP
     const [ hover, setHover ] = useState<boolean>(false);
     const [ piece, setPiece ] = useState<string | undefined>(props.piece);
     const [ isLegalMove, setLegalMove ] = useState<boolean>(false);
+    const [ moveFlag, setMoveFlag ] = useState<number>();
+    const [ showPromotionMenu, setShowPromotionMenu ] = useState<boolean>(false);
     const { positionX, positionY } = props;
 
     const handleSetPiece = (piece: string | undefined, ref: SquareRef) => {
@@ -38,6 +42,7 @@ export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareP
         setHover,
         handleSetPiece,
         setLegalMove,
+        setMoveFlag,
         piece,
         id: props.id,
     }));
@@ -48,8 +53,16 @@ export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareP
         e.preventDefault();
     };
 
-    const handleLeftClickEvent = (e: MouseEvent<HTMLDivElement>) => {
+    const handleLeftClickEvent = async (e: MouseEvent<HTMLDivElement>) => {
         // console.log(`square ${positionX}, ${positionY} left click`);
+        //
+        //check if moveFlag == 3 (meaning it is a promotion)
+        if (moveFlag === 3 && (e.ctrlKey || e.shiftKey)) {
+            setShowPromotionMenu(true);
+            const promotionChoice = await promotionChoiceClosed;
+            setShowPromotionMenu(false);
+        }
+        
         props.handleSquareClicked({
             id: props.id,
             positionX: positionX,
@@ -58,39 +71,49 @@ export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareP
             isLegalMove: isLegalMove,
             setPiece: setPiece,
             setHover: setHover,
+            moveFlag: moveFlag,
         });
         e.preventDefault();
     };
 
+    let promotionMenu = <></>;
+    const promotionChoiceClosed = new Promise<number>((resolve) => {
+        const resolver = resolve;
+        promotionMenu = <PromotionSelection resolution={resolver} positionX={positionX} positionY={positionY}/>
+        // setPromotionMenu(newPromotionMenu);
+    })
 
     let className = piece ? pieceTypes.get(piece) + " " : "";
     className += xTranslations.get(positionX) + " ";
     className += yTranslations.get(positionY);
 
     return (
-        <div className={clsx(
-            `w-[12.5%] h-[12.5%] absolute bg-cover transform ${className}`,
-                    {
-                         "bg-red-500": highlight,
-                         "bg-lime-300": hover,
-                    }
-            )}
-            onClick={handleLeftClickEvent} 
-            onContextMenu={handleRightClickEvent}
-            id={props.id}
-        >
-            {
-			isLegalMove && !piece && 
-            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="50" cy="50" r="20" fill="#262626" opacity="0.5"/>
-			</svg>
-			}
-            {
-            isLegalMove && piece &&
-            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="50" cy="50" r="45" fill="none" stroke="#111827" strokeWidth="5" opacity="0.5"/>
-			</svg>
-            }
-        </div>
+        <>
+            {showPromotionMenu && promotionMenu}
+            <div className={clsx(
+                `w-[12.5%] h-[12.5%] absolute bg-cover transform ${className}`,
+                        {
+                             "bg-red-500": highlight,
+                             "bg-lime-300": hover,
+                        }
+                )}
+                onClick={handleLeftClickEvent} 
+                onContextMenu={handleRightClickEvent}
+                id={props.id}
+            >
+                {
+                isLegalMove && !piece && 
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="20" fill="#262626" opacity="0.5"/>
+                </svg>
+                }
+                {
+                isLegalMove && piece &&
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="#111827" strokeWidth="5" opacity="0.5"/>
+                </svg>
+                }
+            </div>
+        </>
     )
 })
