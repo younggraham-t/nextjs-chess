@@ -1,34 +1,37 @@
 import { xTranslations, yTranslations, pieceTypes } from "./square-tw-classes";
-import { MouseEvent } from "react";
+import { Dispatch, MouseEvent, SetStateAction } from "react";
 
-export default function PromotionSelection(props: {resolution: any, positionX: number, positionY: number}) {
+export default function PromotionSelection(props: {x: number, y: number, handleClick: (value: number) => void}) {
 
-    const {resolution, positionX, positionY} = props;
+    const {x, y, handleClick} = props;
 
 
     let pieces: Array<string | undefined>;
-    if (positionY == 1) {
-        pieces = [pieceTypes.get("bq"), pieceTypes.get("bn"), pieceTypes.get("br"), pieceTypes.get("bb")];
+    if (y == 1) {
+        pieces = ["bb", "br", "bn", "bq"];
 
     }
     else {
-        pieces = [pieceTypes.get("wq"), pieceTypes.get("wn"), pieceTypes.get("wr"), pieceTypes.get("wb")];
+        pieces = ["wq", "wn", "wr", "wb"];
     }
 
     const handleLeftClickEvent = ( e: MouseEvent<HTMLDivElement> ) => {
+        console.log(e.currentTarget)
         const elementId = e.currentTarget.getAttribute("id");
         if (elementId) {
             const promotionType = parseInt(elementId);
-            resolution(promotionType)
+            console.log(promotionType);
+            handleClick(promotionType);
             e.preventDefault();
         }
     }
 
     const squares = pieces.map((piece, i) => {
-        const yOffset = positionY === 1 ? 1: -1;
-        let className = piece + " ";
-        className += xTranslations.get(positionX) + " ";
-        className += yTranslations.get(positionY + (yOffset * i)); 
+        // const yOffset = y === 1 ? 1: -1;
+        let className = "";
+        if (piece) className = pieceTypes.get(piece) + " ";
+        // className += xTranslations.get(x) + " ";
+        // className += yTranslations.get(y + (yOffset * i)); 
 
 
         let id = 0;
@@ -45,16 +48,18 @@ export default function PromotionSelection(props: {resolution: any, positionX: n
             <div 
                 id={"" + id}
                 key={piece}
-                className={`w-[12.5%] h-[12.5%] absolute bg-cover transform ${className}`}
+                className={`w-full h-[25%] bg-cover transform ${className}`}
                 onClick={handleLeftClickEvent} 
             >
             </div>
 
         )
     })
+    let className = xTranslations.get(x) + " ";
+    className += yTranslations.get(y); 
     return (
-        <div className={`bg-white`}>
-            {squares};
+        <div className={`shadow-lg z-10 bg-white w-[12.5%] h-[50%] absolute ${className}`}>
+            {squares}
         </div>
         
     )

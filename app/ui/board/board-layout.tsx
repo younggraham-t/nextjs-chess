@@ -11,6 +11,7 @@ import MoveGenerator from "@/app/utils/board/bitboard/move-generator";
 import Move, {Flag} from "@/app/utils/board/bitboard/move";
 import BoardRepresentation from "@/app/utils/board/bitboard/board-representation";
 import Piece from "@/app/utils/board/bitboard/piece";
+import ConfirmationModalContextProvider from "./confirmation";
 
 
 
@@ -69,7 +70,7 @@ export default function BoardLayout(props: {position: Position}) {
         setPosition(newPosition);
     }
 
-    const handleSquareClicked = (clickedSquareId: string) => {
+    const handleSquareClicked = (clickedSquareId: string, moveFlag = 0) => {
         const clickedSquareRef = refsByKey[clickedSquareId];
         if (clickedSquareRef) {
         console.log(Piece.toString(clickedSquareRef.piece) ? Piece.toString(clickedSquareRef.piece) : clickedSquareId);
@@ -83,7 +84,7 @@ export default function BoardLayout(props: {position: Position}) {
         //check if clickedSquare is a legal move and make that move
         if (clickedSquareRef.isLegalMove && curSquare && refsByKey[curSquare]) {
             const curSquareRef = refsByKey[curSquare];
-            handleMakeMove(clickedSquareRef, curSquareRef);
+            handleMakeMove(clickedSquareRef, curSquareRef, moveFlag);
             return;
         }
 
@@ -124,7 +125,8 @@ export default function BoardLayout(props: {position: Position}) {
         
         }
     }
-    const handleMakeMove = (clickedSquare: SquareRef, curSquareRef: SquareRef) => {
+    const handleMakeMove = (clickedSquare: SquareRef, curSquareRef: SquareRef, moveFlag: number) => {
+        console.log(moveFlag)
         let newLastMove: LastMoveRefs;
         if (curSquareRef && curSquareRef.piece) {
             let curPiece = curSquareRef.piece;
@@ -176,8 +178,8 @@ export default function BoardLayout(props: {position: Position}) {
             
 
             //handle move flags
-            if (clickedSquare.moveFlag) {
-                switch (clickedSquare.moveFlag) {
+            if (moveFlag) {
+                switch (moveFlag) {
                     case Flag.pawnTwoForward: 
                         const epOffset = position.activeColor === GameColor.white ? -1 : 1
                         const clickedSquareX = parseInt(clickedSquare.id.slice(0,1));
@@ -216,10 +218,16 @@ export default function BoardLayout(props: {position: Position}) {
                         console.log(curPiece)
                         break;
                     case Flag.promoteToKnight:
+                        curPiece = curPieceColor + Piece.knight;
+                        console.log(curPiece)
                         break;
                     case Flag.promoteToRook:
+                        curPiece = curPieceColor + Piece.rook;
+                        console.log(curPiece)
                         break;
                     case Flag.promoteToBishop:
+                        curPiece = curPieceColor + Piece.bishop;
+                        console.log(curPiece)
                         break;
                 }
             }
@@ -248,6 +256,7 @@ export default function BoardLayout(props: {position: Position}) {
     const squares = props.position.squares.map((square) => {
         const id = `${square.x}${square.y}`;
         return (
+        <ConfirmationModalContextProvider>
             <Square 
             key={id} 
             id={id} 
@@ -258,11 +267,13 @@ export default function BoardLayout(props: {position: Position}) {
             ref={element => setRef(element, id)}
 
             />
+        </ConfirmationModalContextProvider>
            )
     })
     return (
-        <div className={`flex m-12 h-[480px] w-[480px] bg-board bg-cover relative`}>
-            {squares}
-		</div>
+            <div className={`flex m-12 h-[480px] w-[480px] bg-board bg-cover relative`}>
+                {squares}
+            </div>
+
     )
 }

@@ -5,13 +5,15 @@ import clsx from "clsx";
 import {HandleSquareClickedProps} from "./board-layout";
 import PromotionSelection from "./promotion-selection";
 import Piece from "@/app/utils/board/bitboard/piece";
+import usePromotion from "./use-promotion";
+import ConfirmationModalContextProvider, {useConfirmationModalContext} from "./confirmation";
 
 export type SquareProps = {
     id: string,
     piece: number,
     positionX: number,
     positionY: number,
-    handleSquareClicked: (squareClicedId: string) => void,
+    handleSquareClicked: (squareClicedId: string, moveFlag: number) => void,
 }
 
 
@@ -33,8 +35,9 @@ export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareP
     const [ piece, setPiece ] = useState<number>(props.piece);
     const [ isLegalMove, setLegalMove ] = useState<boolean>(false);
     const [ moveFlag, setMoveFlag ] = useState<number>();
-    const [ showPromotionMenu, setShowPromotionMenu ] = useState<boolean>(false);
     const { positionX, positionY } = props;
+    const modalConfirmation = useConfirmationModalContext();
+
 
     const handleSetPiece = (piece: number, ref: SquareRef) => {
         setPiece(piece);
@@ -63,21 +66,22 @@ export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareP
         //
         //check if moveFlag == 3 (meaning it is a promotion)
         if (moveFlag === 3 && (e.ctrlKey || e.shiftKey)) {
-            setShowPromotionMenu(true);
-            const promotionChoice = await promotionChoiceClosed;
-            setShowPromotionMenu(false);
+            const promotionChoice = await modalConfirmation.showConfirmation(positionX, positionY)
+            console.log(promotionChoice);
+            setMoveFlag(promotionChoice);
+            props.handleSquareClicked(props.id, promotionChoice);
+            return;
         }
         
-        props.handleSquareClicked(props.id);
+        props.handleSquareClicked(props.id, moveFlag?? 0);
         e.preventDefault();
     };
 
-    let promotionMenu = <></>;
-    const promotionChoiceClosed = new Promise<number>((resolve) => {
-        const resolver = resolve;
-        promotionMenu = <PromotionSelection resolution={resolver} positionX={positionX} positionY={positionY}/>
-        // setPromotionMenu(newPromotionMenu);
-    })
+    // let promotionMenu = <></>;
+    // const promotionChoiceClosed = new Promise<number>((resolve) => {
+    //     promotionMenu = <PromotionSelection handleClick={(value: number) => resolve(value)} x={positionX} y={positionY}/>
+    //     // setPromotionMenu(newPromotionMenu);
+    // })
 
     const pieceClass = pieceTypes.get(Piece.toString(piece));
     let className = pieceClass + " ";
@@ -86,7 +90,6 @@ export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareP
 
     return (
         <>
-            {showPromotionMenu && promotionMenu}
             <div className={clsx(
                 `w-[12.5%] h-[12.5%] absolute bg-cover transform ${className}`,
                         {
@@ -111,6 +114,7 @@ export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareP
                 </svg>
                 }
             </div>
+            {/* {promotionMenu} */}
         </>
     )
 })
