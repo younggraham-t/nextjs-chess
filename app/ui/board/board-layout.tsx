@@ -126,7 +126,7 @@ export default function BoardLayout(props: {position: Position}) {
         }
     }
     const handleMakeMove = (clickedSquare: SquareRef, curSquareRef: SquareRef, moveFlag: number) => {
-        console.log(moveFlag)
+        // console.log(moveFlag)
         let newLastMove: LastMoveRefs;
         if (curSquareRef && curSquareRef.piece) {
             let curPiece = curSquareRef.piece;

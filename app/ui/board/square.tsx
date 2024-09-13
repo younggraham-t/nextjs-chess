@@ -67,7 +67,7 @@ export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareP
         //check if moveFlag == 3 (meaning it is a promotion)
         if (moveFlag === 3 && (e.ctrlKey || e.shiftKey)) {
             const promotionChoice = await modalConfirmation.showConfirmation(positionX, positionY)
-            console.log(promotionChoice);
+            // console.log(promotionChoice);
             setMoveFlag(promotionChoice);
             props.handleSquareClicked(props.id, promotionChoice);
             return;

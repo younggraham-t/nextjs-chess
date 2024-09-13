@@ -16,11 +16,11 @@ export default function PromotionSelection(props: {x: number, y: number, handleC
     }
 
     const handleLeftClickEvent = ( e: MouseEvent<HTMLDivElement> ) => {
-        console.log(e.currentTarget)
+        // console.log(e.currentTarget)
         const elementId = e.currentTarget.getAttribute("id");
         if (elementId) {
             const promotionType = parseInt(elementId);
-            console.log(promotionType);
+            // console.log(promotionType);
             handleClick(promotionType);
             e.preventDefault();
         }
