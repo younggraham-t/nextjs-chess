@@ -256,7 +256,7 @@ export default function BoardLayout(props: {position: Position}) {
     const squares = props.position.squares.map((square) => {
         const id = `${square.x}${square.y}`;
         return (
-        <ConfirmationModalContextProvider>
+        <ConfirmationModalContextProvider key={id}>
             <Square 
             key={id} 
             id={id} 

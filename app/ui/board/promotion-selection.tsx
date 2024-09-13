@@ -56,7 +56,7 @@ export default function PromotionSelection(props: {x: number, y: number, handleC
         )
     })
     let className = xTranslations.get(x) + " ";
-    className += yTranslations.get(y); 
+    className += y != 1 ? "translate-y-0" : "translate-y-[100%]"; 
     return (
         <div className={`shadow-lg z-10 bg-white w-[12.5%] h-[50%] absolute ${className}`}>
             {squares}
