@@ -146,21 +146,33 @@ export class PrecomputedMoveData {
 			if (x > 0) {
 				if (y < 7) {
 					pawnCapturesWhite.push (squareIndex + 7);
-					PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.whiteIndex] |= BigInt(1) <<  BigInt(squareIndex + 7);
+                    if (!PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.whiteIndex]) {
+                        PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.whiteIndex] = BigInt(0);
+                    }
+                    PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.whiteIndex] |= BigInt(1) <<  BigInt(squareIndex + 7);
 				}
 				if (y > 0) {
 					pawnCapturesBlack.push (squareIndex - 9);
-					PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.blackIndex] |= BigInt(1) << BigInt(squareIndex - 9);
+                    if (!PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.blackIndex]) {
+                        PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.blackIndex] = BigInt(0);
+                    } 
+                    PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.blackIndex] |= BigInt(1) << BigInt(squareIndex - 9);
 				}
 			}
 			if (x < 7) {
 				if (y < 7) {
 					pawnCapturesWhite.push (squareIndex + 9);
-					PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.whiteIndex] |= BigInt(1) << BigInt(squareIndex + 9);
+                    if (!PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.whiteIndex]) {
+                        PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.whiteIndex] = BigInt(0);
+                    }
+                    PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.whiteIndex] |= BigInt(1) << BigInt(squareIndex + 9);
 				}
 				if (y > 0) {
 					pawnCapturesBlack.push (squareIndex - 7);
-					PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.blackIndex] |= BigInt(1) << BigInt(squareIndex - 7);
+                    if (!PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.blackIndex]) {
+                        PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.blackIndex] = BigInt(0);
+                    } 
+                    PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.blackIndex] |= BigInt(1) << BigInt(squareIndex - 7);
 				}
 			}
 			PrecomputedMoveData.pawnAttacksWhite[squareIndex] = new Uint32Array(pawnCapturesWhite);
