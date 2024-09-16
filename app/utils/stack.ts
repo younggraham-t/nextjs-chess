@@ -21,7 +21,7 @@ export default class Stack<T> implements IStack<T> {
     return this.storage.pop();
   }
 
-  peek(): T | undefined {
+  peek(): T  {
     return this.storage[this.size() - 1];
   }
 
