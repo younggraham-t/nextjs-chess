@@ -1,19 +1,15 @@
 "use client";
-import { MouseEvent, SetStateAction, Dispatch, useState, forwardRef, useImperativeHandle, ReactElement } from "react";
+import { MouseEvent, SetStateAction, Dispatch, useState, forwardRef, useImperativeHandle } from "react";
 import { xTranslations, yTranslations, pieceTypes } from "./square-tw-classes";
 import clsx from "clsx";
-import {HandleSquareClickedProps} from "./board-layout";
-import PromotionSelection from "./promotion-selection";
 import Piece from "@/app/utils/board/bitboard/piece";
-import usePromotion from "./use-promotion";
-import ConfirmationModalContextProvider, {useConfirmationModalContext} from "./confirmation";
 
 export type SquareProps = {
     id: string,
     piece: number,
     positionX: number,
     positionY: number,
-    handleSquareClicked: (squareClicedId: string, moveFlag: number) => void,
+    handleSquareClicked: (squareClicedId: string, moveFlag: number | undefined, shiftOrCtrl: boolean | undefined) => void,
 }
 
 
@@ -36,7 +32,6 @@ export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareP
     const [ isLegalMove, setLegalMove ] = useState<boolean>(false);
     const [ moveFlag, setMoveFlag ] = useState<number>();
     const { positionX, positionY } = props;
-    const modalConfirmation = useConfirmationModalContext();
 
 
     const handleSetPiece = (piece: number, ref: SquareRef) => {
@@ -63,25 +58,12 @@ export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareP
 
     const handleLeftClickEvent = async (e: MouseEvent<HTMLDivElement>) => {
         // console.log(`square ${positionX}, ${positionY} left click`);
-        //
-        //check if moveFlag == 3 (meaning it is a promotion)
-        if (moveFlag === 3 && (e.ctrlKey || e.shiftKey)) {
-            const promotionChoice = await modalConfirmation.showConfirmation(positionX, positionY)
-            // console.log(promotionChoice);
-            setMoveFlag(promotionChoice);
-            props.handleSquareClicked(props.id, promotionChoice);
-            return;
-        }
+
         
-        props.handleSquareClicked(props.id, moveFlag?? 0);
+        props.handleSquareClicked(props.id, moveFlag, e.ctrlKey || e.shiftKey);
         e.preventDefault();
     };
 
-    // let promotionMenu = <></>;
-    // const promotionChoiceClosed = new Promise<number>((resolve) => {
-    //     promotionMenu = <PromotionSelection handleClick={(value: number) => resolve(value)} x={positionX} y={positionY}/>
-    //     // setPromotionMenu(newPromotionMenu);
-    // })
 
     const pieceClass = pieceTypes.get(Piece.toString(piece));
     let className = pieceClass + " ";
@@ -114,7 +96,6 @@ export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareP
                 </svg>
                 }
             </div>
-            {/* {promotionMenu} */}
         </>
     )
 })

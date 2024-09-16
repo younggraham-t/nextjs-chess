@@ -23,6 +23,7 @@ const useModalShow = (): UseModalShowReturnType => {
 
 type ModalContextType = {
     showConfirmation: (x: number, y: number) => Promise<number>;
+    cancelConfirmation: () => void;
 };
 
 type ConfirmationModalContextProviderProps = {
@@ -47,9 +48,6 @@ const ConfirmationModalContextProvider: React.FC<ConfirmationModalContextProvide
         });
     };
 
-    const modalContext: ModalContextType = {
-        showConfirmation: handleShow
-    };
 
     const handleOk = (value: number) => {
         resolver.current && resolver.current(value);
@@ -57,15 +55,20 @@ const ConfirmationModalContextProvider: React.FC<ConfirmationModalContextProvide
     };
 
     const handleCancel = () => {
-        resolver.current && resolver.current(0);
+        resolver.current && resolver.current(-1);
         onHide();
+    };
+
+    const modalContext: ModalContextType = {
+        showConfirmation: handleShow,
+        cancelConfirmation: handleCancel
     };
 
     return (
         <ConfirmationModalContext.Provider value={modalContext}>
             {props.children}
             {content && show &&
-                        <PromotionSelection handleClick={handleOk} x={content.x} y={content.y}/>
+                        <PromotionSelection handleCancel={handleCancel} handleClick={handleOk} x={content.x} y={content.y}/>
                 }
          </ConfirmationModalContext.Provider>
     )

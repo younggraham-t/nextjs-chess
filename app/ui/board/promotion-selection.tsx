@@ -1,7 +1,7 @@
-import { xTranslations, yTranslations, pieceTypes } from "./square-tw-classes";
-import { Dispatch, MouseEvent, SetStateAction } from "react";
+import { xTranslations, pieceTypes } from "./square-tw-classes";
+import { MouseEvent } from "react";
 
-export default function PromotionSelection(props: {x: number, y: number, handleClick: (value: number) => void}) {
+export default function PromotionSelection(props: {x: number, y: number, handleClick: (value: number) => void, handleCancel: () => void}) {
 
     const {x, y, handleClick} = props;
 
@@ -26,12 +26,9 @@ export default function PromotionSelection(props: {x: number, y: number, handleC
         }
     }
 
-    const squares = pieces.map((piece, i) => {
-        // const yOffset = y === 1 ? 1: -1;
+    const squares = pieces.map((piece) => {
         let className = "";
         if (piece) className = pieceTypes.get(piece) + " ";
-        // className += xTranslations.get(x) + " ";
-        // className += yTranslations.get(y + (yOffset * i)); 
 
 
         let id = 0;
@@ -48,7 +45,7 @@ export default function PromotionSelection(props: {x: number, y: number, handleC
             <div 
                 id={"" + id}
                 key={piece}
-                className={`w-full h-[25%] bg-cover transform ${className}`}
+                className={`w-full h-[25%] bg-cover transform cursor-pointer ${className}`}
                 onClick={handleLeftClickEvent} 
             >
             </div>
@@ -56,10 +53,24 @@ export default function PromotionSelection(props: {x: number, y: number, handleC
         )
     })
     let className = xTranslations.get(x) + " ";
-    className += y != 1 ? "translate-y-0" : "translate-y-[100%]"; 
+    className += y != 1 ? "translate-y-0" : "translate-y-[77%]"; 
+
+    const cancelButton = <div 
+            className={`w-full h-[12.5%] text-black text-center cursor-pointer`} 
+            onClick={props.handleCancel}
+            >
+                <svg viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
+                    <line x1="40" y1="40" x2="60" y2="20" stroke="black" strokeWidth="3"/>
+                    <line x1="40" y1="20" x2="60" y2="40" stroke="black" strokeWidth="3"/>
+                </svg>
+            </div>;
     return (
-        <div className={`shadow-lg z-10 bg-white w-[12.5%] h-[50%] absolute ${className}`}>
-            {squares}
+        <div className={`shadow-2xl z-20 bg-white w-[12.5%] h-[56.25%] absolute ${className}`}>
+            {y === 1 && cancelButton}
+            <div className={`w-full h-[87.5%]`}>
+                {squares}
+            </div>
+            {y !== 1 && cancelButton}
         </div>
         
     )
