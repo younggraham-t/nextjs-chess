@@ -1,4 +1,3 @@
-import {GameColor} from "@/app/page"
 
 export type SquareStart = {
     x: number,
@@ -13,4 +12,10 @@ export type Position = {
     enPassant: string,
     halfMove: number,
     fullMove: number,
+}
+
+
+export enum GameColor {
+    white = "w",
+    black = "b",
 }

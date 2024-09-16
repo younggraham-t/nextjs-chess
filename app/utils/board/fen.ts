@@ -1,5 +1,4 @@
-import { SquareStart, Position } from "@/app/utils/board/posistions";
-import { GameColor } from "@/app/page";
+import { SquareStart, Position, GameColor } from "@/app/utils/board/posistions";
 import BitBoard from "./bitboard/bitboards";
 import Piece from "./bitboard/piece";
 import BoardRepresentation from "./bitboard/board-representation";
