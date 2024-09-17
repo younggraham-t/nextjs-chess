@@ -1,6 +1,19 @@
 
 
 export default class Piece {
+    static pieceTypeNameToNumber: Record<string, number> = {
+        "": 0,
+        "k": 1,
+        "p": 2,
+        "n": 3,
+        "b": 5,
+        "r": 6,
+        "q": 7,
+    }
+    static pieceColorNameToNumber: Record<string, number> = {
+        "w": 8,
+        "b": 16,
+    }
     static none: number = 0; //00000
     static king: number = 1; //00001
     static pawn: number = 2; //00010
@@ -34,11 +47,17 @@ export default class Piece {
     }
 
     static isBishopOrQueen(piece: number) {
-        return (piece & 0b101) == 0b110;
+        return (piece & 0b101) == 0b101;
     }
 
     static isSlidingPiece(piece: number) {
         return (piece & 0b100) != 0;
+    }
+
+    static pieceNameToPiece(piece: string) {
+        const pieceColor = piece.slice(0,1);
+        const pieceType = piece.slice(1);
+        return this.pieceColorNameToNumber[pieceColor] + this.pieceTypeNameToNumber[pieceType];
     }
 
     static toString(piece: number) {

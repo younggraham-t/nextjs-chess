@@ -72,10 +72,13 @@ export const getSquares = (squareRefs : Record<string, SquareRef | null>) => {
     for (let y = 8; y >= 1; y--) {
         for (let x = 1; x <= 8; x++) {
             // console.log(squareRefs[`${x}${y}`].piece);
+            const piece = squareRefs[`${x}${y}`]?.piece?? 0;
+            // console.log(`${x}${y}`)
+            // console.log(piece);
             const square = {
                 x,
                 y,
-                piece: squareRefs[`${x}${y}`]?.piece,
+                piece: piece,
             }
             output.push(square);
         }

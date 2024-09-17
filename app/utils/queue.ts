@@ -1,30 +1,23 @@
-interface IStack<T> {
-  push(item: T): void;
-  pop(): T | undefined;
-  peek(): T | undefined;
+interface IQueue<T> {
+  enqueue(item: T): void;
+  dequeue(): T | undefined;
   size(): number;
 }
 
-export default class Stack<T> implements IStack<T> {
+export default class Queue<T> implements IQueue<T> {
   private storage: T[] = [];
 
   constructor(private capacity: number = Infinity) {}
 
-  push(item: T): void {
+  enqueue(item: T): void {
     if (this.size() === this.capacity) {
-      throw Error("Stack has reached max capacity, you cannot add more items");
+      throw Error("Queue has reached max capacity, you cannot add more items");
     }
     this.storage.push(item);
   }
-
-  pop(): T | undefined {
-    return this.storage.pop();
+  dequeue(): T | undefined {
+    return this.storage.shift();
   }
-
-  peek(): T  {
-    return this.storage[this.size() - 1];
-  }
-
   size(): number {
     return this.storage.length;
   }

@@ -1,5 +1,4 @@
-import { SquareStart, Position } from "@/app/utils/board/posistions";
-import { GameColor } from "@/app/page";
+import { SquareStart, Position, GameColor } from "@/app/utils/board/posistions";
 import BitBoard from "./bitboard/bitboards";
 import Piece from "./bitboard/piece";
 import BoardRepresentation from "./bitboard/board-representation";
@@ -7,6 +6,7 @@ import BoardRepresentation from "./bitboard/board-representation";
 export const startFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 export const fenToPosition = (fen: string) => {
     const squares = new Array<SquareStart>();
+    // console.log(fen);
 
     const fenParts = fen.split(" ");
     const ranks = fenParts[0].split("/");
@@ -19,12 +19,14 @@ export const fenToPosition = (fen: string) => {
     let x = 1;
     let y = 8;
     for(const rank of ranks) {
+        // console.log(rank);
         for(const char of rank) {
             if (!isNaN(parseInt(char))) {
                 for (let i = 0; i < parseInt(char); i++) {
                     const newSquare = {
                         x,
                         y,
+                        piece: 0,
                     }
                     // console.log(newSquare);
                     squares.push(newSquare);
@@ -32,12 +34,16 @@ export const fenToPosition = (fen: string) => {
                 }
                 continue;
             }
-            const piece = char.toUpperCase() == char ? `w${char.toLowerCase()}` : `b${char}`;
+            // console.log(char);
+            const pieceName = char.toUpperCase() == char ? `w${char.toLowerCase()}` : `b${char}`;
+            // console.log(pieceName);
+            const piece = Piece.pieceNameToPiece(pieceName) 
             const newSquare = {
                 x: x,
                 y: y,
                 piece: piece, 
             }  
+            // console.log(newSquare);
             squares.push(newSquare);
             x++;
         }
@@ -78,8 +84,30 @@ export const positionToFen = (position: Position) => {
                 currentRank += `${emptySquareCounter}`;
                 emptySquareCounter = 0; 
             }
-            currentRank += square.piece.slice(0,1) == "w" ? square.piece.slice(1).toUpperCase() : square.piece.slice(1);
 
+            let pieceToAdd = ""; 
+            switch (Piece.getPieceType(square.piece)) {
+                case Piece.pawn:
+                    pieceToAdd += "P";
+                    break;
+                case Piece.knight:
+                    pieceToAdd += "N";
+                    break;
+                case Piece.bishop:
+                    pieceToAdd += "B";
+                    break;
+                case Piece.rook:
+                    pieceToAdd += "R";
+                    break;
+                case Piece.queen:
+                    pieceToAdd += "Q";
+                    break;
+                case Piece.king:
+                    pieceToAdd += "K";
+                    break;
+
+            }
+            currentRank += Piece.isColor(square.piece, Piece.white) ? pieceToAdd : pieceToAdd.toLowerCase();
         }
         if (curColCounter == 8) {
             if (emptySquareCounter > 0) {

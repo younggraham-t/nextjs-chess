@@ -25,7 +25,7 @@ export class PrecomputedMoveData {
 
 	 static pawnAttacksWhite: Array<Uint32Array>;
 	 static pawnAttacksBlack: Array<Uint32Array>;
-	 static directionLookup: Uint32Array;
+	 static directionLookup: Array<number>;
 
 	 static kingAttackBitboards: BigUint64Array;
 	 static knightAttackBitboards: BigUint64Array;
@@ -146,21 +146,33 @@ export class PrecomputedMoveData {
 			if (x > 0) {
 				if (y < 7) {
 					pawnCapturesWhite.push (squareIndex + 7);
-					PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.whiteIndex] |= BigInt(1) <<  BigInt(squareIndex + 7);
+                    if (!PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.whiteIndex]) {
+                        PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.whiteIndex] = BigInt(0);
+                    }
+                    PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.whiteIndex] |= BigInt(1) <<  BigInt(squareIndex + 7);
 				}
 				if (y > 0) {
 					pawnCapturesBlack.push (squareIndex - 9);
-					PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.blackIndex] |= BigInt(1) << BigInt(squareIndex - 9);
+                    if (!PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.blackIndex]) {
+                        PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.blackIndex] = BigInt(0);
+                    } 
+                    PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.blackIndex] |= BigInt(1) << BigInt(squareIndex - 9);
 				}
 			}
 			if (x < 7) {
 				if (y < 7) {
 					pawnCapturesWhite.push (squareIndex + 9);
-					PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.whiteIndex] |= BigInt(1) << BigInt(squareIndex + 9);
+                    if (!PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.whiteIndex]) {
+                        PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.whiteIndex] = BigInt(0);
+                    }
+                    PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.whiteIndex] |= BigInt(1) << BigInt(squareIndex + 9);
 				}
 				if (y > 0) {
 					pawnCapturesBlack.push (squareIndex - 7);
-					PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.blackIndex] |= BigInt(1) << BigInt(squareIndex - 7);
+                    if (!PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.blackIndex]) {
+                        PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.blackIndex] = BigInt(0);
+                    } 
+                    PrecomputedMoveData.pawnAttackBitboards[squareIndex][BitBoard.blackIndex] |= BigInt(1) << BigInt(squareIndex - 7);
 				}
 			}
 			PrecomputedMoveData.pawnAttacksWhite[squareIndex] = new Uint32Array(pawnCapturesWhite);
@@ -185,7 +197,7 @@ export class PrecomputedMoveData {
 			PrecomputedMoveData.queenMoves[squareIndex] = PrecomputedMoveData.rookMoves[squareIndex] | PrecomputedMoveData.bishopMoves[squareIndex];
 		}
 
-		PrecomputedMoveData.directionLookup = new Uint32Array([127]);
+		PrecomputedMoveData.directionLookup = new Array(127);
 		for (let i = 0; i < 127; i++) {
 			const offset = i - 63;
 			const absOffset = Math.abs (offset);
@@ -197,8 +209,11 @@ export class PrecomputedMoveData {
 			} else if (absOffset % 7 == 0) {
 				absDir = 7;
 			}
-
+            // console.log(absDir);
+            // console.log(Math.sign(offset));
+            // console.log((absDir * Math.sign(offset)).toString(2));
 			PrecomputedMoveData.directionLookup[i] = absDir * Math.sign(offset);
+            // console.log(PrecomputedMoveData.directionLookup[i].toString(2))
 		}
 
 		// Distance lookup
