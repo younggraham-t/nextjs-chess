@@ -12,10 +12,9 @@ export enum PromotionMode {
 export default class MoveGenerator {
     
     private promotionsToGenerate: PromotionMode = PromotionMode.All;
-    private board: BitBoard;
     private genQuiets: boolean = true;
     private moves: Array<Move> = [];
-
+    private board: BitBoard = new BitBoard("8/8/8/8/8/8/8/8 - - -");
     private inCheck: boolean = false;
     private inDoubleCheck: boolean = false;
     private pinsExist: boolean = false;
@@ -36,60 +35,61 @@ export default class MoveGenerator {
 
     private PMD: PrecomputedMoveData = new PrecomputedMoveData();
 
-    returnMoves(moves: Array<Move>) {
+    static returnMoves(moves: Array<Move>) {
         // console.log(moves);
          return moves.map((move) => {
-             const startSquare = move.getStartSquare();
-             const targetSquare = move.getTargetSquare();
-             // console.log(targetSquare);
-             const startSquareName = BoardRepresentation.getSquareNameFromIndex(startSquare);
-             const targetSquareName = BoardRepresentation.getSquareNameFromIndex(targetSquare);
-             const moveFlag = Flag.getFlagName(move.getMoveFlag());
-             const output = startSquareName + targetSquareName + moveFlag;
-             return output 
+             return Move.toString(move);
          });
     }
 
-    constructor(board: BitBoard) {
-        this.board = board;
 
-    }
 
-    generateMoves(board = this.board, includeQueitMoves = true): Array<Move> {
+    generateMoves(board: BitBoard, output: Array<Move>, includeQueitMoves = true) {
         this.genQuiets = includeQueitMoves;
 
         this.initiateVariables(board);
 
         this.calculateAttackData();
-        // return ["e2e4", "e2e3", "d2d3", "d2d4", "c2c3", "c2c4"]
-         this.genKingMoves();
-         
-         if (this.inDoubleCheck) {
-             return this.moves;
-         }
-         this.genSlidingMoves();
-         this.genKnightMoves();
-         this.genPawnMoves();
 
-        return this.moves;
+        
+        this.genKingMoves(output);
+         
+        if (this.inDoubleCheck) {
+            return this.moves;
+        }
+        this.genSlidingMoves(output);
+        this.genKnightMoves(output);
+        this.genPawnMoves(output);
+		// console.log(output.length);
     }
 
-    initiateVariables(board = this.board) {
-        // console.log(this.board);
-        this.board = board;
+    initiateVariables(board: BitBoard) {
+        // console.log(board);
+        this.board = board
+        this.moves = [];
         this.isWhiteToMove = this.board.activeColor === Piece.white;
         this.friendlyColor = this.board.activeColor;
         this.opponentColor = this.board.opponentColor;
         this.friendlyColorIndex = this.board.whiteToMove ? BitBoard.whiteIndex : BitBoard.blackIndex;
         this.friendlyKingSquare = this.board.kings[this.friendlyColorIndex];
         this.opponentColorIndex = 1 - this.friendlyColorIndex;
+        
+        this.inCheck = false;
+        this.inDoubleCheck = false;
+        this.pinsExist = false;
+        this.checkRayBitMask = BigInt(0);
+        this.pinRayBitMask = BigInt(0);
     }
 
-    genKingMoves() {
+    genKingMoves(output: Array<Move>) {
 
+        // console.log(output);
         for (let i = 0; i < pmd.kingMoves[this.friendlyKingSquare].length; i++){
+            // console.log(i);
             const targetSquare = pmd.kingMoves[this.friendlyKingSquare][i];
             const targetSquarePiece = this.board.squares[targetSquare];
+            // console.log(targetSquarePiece);
+            // console.log(this.friendlyColor)
 
             if (Piece.isColor(targetSquarePiece, this.friendlyColor)) {
                 continue;
@@ -102,9 +102,10 @@ export default class MoveGenerator {
                 }
             }
 
+            // console.log(!this.squareIsAttacked(targetSquare))
             if (!this.squareIsAttacked(targetSquare)) { 
                 // console.log(targetSquare);
-                this.moves.push(new Move(this.friendlyKingSquare, targetSquare))
+                output.push(new Move(this.friendlyKingSquare, targetSquare))
 
                 if (!isCapture && !this.inCheck) {
                     //kingside
@@ -112,16 +113,16 @@ export default class MoveGenerator {
                         const castleSquare = targetSquare + 1;
                         if (this.board.squares[castleSquare] == Piece.none) {
                             if (!this.squareIsAttacked(castleSquare)) {
-                                this.moves.push(new Move(this.friendlyKingSquare, castleSquare, Flag.castling));
+                                output.push(new Move(this.friendlyKingSquare, castleSquare, Flag.castling));
                             }
                         }
                     }
                     //queenside
                     if ((targetSquare == BoardRepresentation.d1 || targetSquare == BoardRepresentation.d8) && this.hasQueenSideCastlingRight()) {
                         const castleSquare = targetSquare - 1;
-                        if (this.board.squares[castleSquare] == Piece.none) {
+                        if (this.board.squares[castleSquare] == Piece.none && this.board.squares[castleSquare - 1] == Piece.none) {
                             if (!this.squareIsAttacked(castleSquare)) {
-                                this.moves.push(new Move(this.friendlyKingSquare, castleSquare, Flag.castling))
+                                output.push(new Move(this.friendlyKingSquare, castleSquare, Flag.castling))
                             }
                         }
                     }
@@ -130,6 +131,7 @@ export default class MoveGenerator {
             
         }
 
+        // console.log(output);
     }
 
 
@@ -146,31 +148,31 @@ export default class MoveGenerator {
 		
 	}
 
-    genSlidingMoves() {
+    genSlidingMoves(output: Array<Move>) {
         // console.log(this.returnMoves(this.moves));
         const rooks = this.board.rooks[this.friendlyColorIndex];
         for (let i = 0; i < rooks.size(); i++) {
-            this.genSlidingPieceMoves(rooks.get(i), 0, 4)
+            this.genSlidingPieceMoves(rooks.get(i), 0, 4, output)
         }
         const bishops = this.board.bishops[this.friendlyColorIndex];
         for (let i = 0; i < bishops.size(); i++) {
-            this.genSlidingPieceMoves(bishops.get(i), 4, 8)
+            this.genSlidingPieceMoves(bishops.get(i), 4, 8, output)
         }
         const queens = this.board.queens[this.friendlyColorIndex];
         for (let i = 0; i < queens.size(); i++) {
-            this.genSlidingPieceMoves(queens.get(i), 0, 8)
+            this.genSlidingPieceMoves(queens.get(i), 0, 8, output)
         }
         // console.log(this.returnMoves(this.moves));
     }
 
-    genSlidingPieceMoves(startSquare: number, startDirIndex: number, endDirIndex: number) {
+    genSlidingPieceMoves(startSquare: number, startDirIndex: number, endDirIndex: number, output: Array<Move>) {
         const isPinned = this.isPinned(startSquare);
         // console.log(isPinned)
         // console.log(this.inCheck);
         if (this.inCheck && isPinned) {
             return;
         }
-        // console.log("startSquare: " + BoardRepresentation.getSquareNameFromIndex(startSquare))
+        // console.log("startSquare: " + this.boardRepresentation.getSquareNameFromIndex(startSquare))
 
         // direction index is used to find the possible direction from pmd.directionOffsets
         // which looks like N, W, S, E, NW, SE, NE, SW meaning if startDirIndex is 0 and endDirIndex is 3
@@ -179,6 +181,8 @@ export default class MoveGenerator {
             const curDirOffset = pmd.directionOffsets[dirIndex];
             // console.log(curDirOffset + " dirOffset")
 
+            // console.log(BoardRepresentation.getSquareNameFromIndex(startSquare));
+            // console.log(!this.isMovingAlongRay(curDirOffset, this.friendlyKingSquare, startSquare))
             if (isPinned && !this.isMovingAlongRay(curDirOffset, this.friendlyKingSquare, startSquare)) {
                 continue;
             }
@@ -188,20 +192,22 @@ export default class MoveGenerator {
                 const targetSquare = startSquare + curDirOffset * (i + 1);
                 const targetSquarePiece = this.board.squares[targetSquare];
 
-                // console.log(BoardRepresentation.getSquareNameFromIndex(targetSquare))
+                // console.log(this.boardRepresentation.getSquareNameFromIndex(targetSquare))
 
                 if (Piece.isColor(targetSquarePiece, this.friendlyColor)) {
                     break;
                 }
+                // console.log(Move.toString(new Move(startSquare, targetSquare)));
 
                 const isCapture = targetSquarePiece != Piece.none;
                 const movePreventsCheck = this.squareIsInCheckRay(targetSquare);
                 if (!this.inCheck || movePreventsCheck) {
                     if (this.genQuiets || isCapture) {
+                        // console.log(isCapture);
                         // console.log("move added")
                         const move = new Move(startSquare, targetSquare);
                         // console.log(move.getMove().toString(2));
-                        this.moves.push(move)
+                        output.push(move)
                     }
                 }
                 if (isCapture || movePreventsCheck) {
@@ -211,13 +217,13 @@ export default class MoveGenerator {
         }
     }
 
-    genKnightMoves() {
+    genKnightMoves(output: Array<Move>) {
         const myKnights = this.board.knights[this.friendlyColorIndex];
 
         for (let i = 0; i < myKnights.size(); i++) {
             const startSquare = myKnights.get(i);
 
-            // console.log("startSquare: " + BoardRepresentation.getSquareNameFromIndex(startSquare))
+            // console.log("startSquare: " + this.boardRepresentation.getSquareNameFromIndex(startSquare))
             if (this.isPinned(startSquare)) {
                 continue;
             }
@@ -228,7 +234,7 @@ export default class MoveGenerator {
                 const targetSquare = pmd.knightMoves[startSquare][knightMoveIndex];
                 const targetSquarePiece = this.board.squares[targetSquare];
 
-                // console.log(BoardRepresentation.getSquareNameFromIndex(targetSquare))
+                // console.log(this.boardRepresentation.getSquareNameFromIndex(targetSquare))
 
                 if  (Piece.isColor(targetSquarePiece, this.friendlyColor)) {
                     continue;
@@ -242,23 +248,25 @@ export default class MoveGenerator {
                         // console.log("move added")
                         const move = new Move(startSquare, targetSquare);
                         // console.log(move.getMove().toString(2));
-                        this.moves.push(move);
+                        output.push(move);
                     }
                 }            
             }
         }
     }
 
-    genPawnMoves() {
+    genPawnMoves(output: Array<Move>) {
+        // console.log("here")
         const myPawns = this.board.pawns[this.friendlyColorIndex];
         const pawnOffset = this.friendlyColor == Piece.white ? 8 : -8;
         const startRank = this.friendlyColor == Piece.white ? 1 : 6;
         const finalSquareBeforePromotion = this.friendlyColor == Piece.white ? 6 : 1;
 
-        const enPassantFile = (this.board.currentGameState >> 4 & 15);
+        const enPassantFile = (this.board.currentGameState >> 4 & 15) - 1;
         let enPassantSquare = -1;
-        if (enPassantFile != 8) {
+        if (enPassantFile != -1) {
             enPassantSquare = 8 * (this.board.whiteToMove ? 5 : 2) + enPassantFile; 
+            // console.log(enPassantSquare)
         }
 
         for (let i = 0; i < myPawns.size(); i++) {
@@ -274,17 +282,17 @@ export default class MoveGenerator {
                     if (!this.isPinned(startSquare) || this.isMovingAlongRay(pawnOffset, startSquare, this.friendlyKingSquare)) { 
                         if (!this.inCheck || this.squareIsInCheckRay(squareOneForward)) {
                             if (oneStepFromPromotion) {
-                                this.makePromotionMoves(startSquare, squareOneForward);
+                                this.makePromotionMoves(startSquare, squareOneForward, output);
                             }
                             else {
-                                this.moves.push(new Move(startSquare, squareOneForward));
+                                output.push(new Move(startSquare, squareOneForward));
                             }
                         }
                         if (rank == startRank) {
                             const squareTwoForward = squareOneForward + pawnOffset;
                             if(this.board.squares[squareTwoForward] == Piece.none) {
                                 if (!this.inCheck || this.squareIsInCheckRay(squareTwoForward)) {
-                                    this.moves.push(new Move(startSquare, squareTwoForward, Flag.pawnTwoForward));
+                                    output.push(new Move(startSquare, squareTwoForward, Flag.pawnTwoForward));
                                 }
                             }
                         }
@@ -311,16 +319,16 @@ export default class MoveGenerator {
                         }
                         
                         if (oneStepFromPromotion) {
-                            this.makePromotionMoves(startSquare, targetSquare)
+                            this.makePromotionMoves(startSquare, targetSquare, output)
                         }
                         else {
-                            this.moves.push(new Move(startSquare, targetSquare));
+                            output.push(new Move(startSquare, targetSquare));
                         }
                     }
                     if (targetSquare === enPassantSquare) {
                         const epCapturedPawnSquare = targetSquare + (this.board.whiteToMove ? -8 : 8);
                         if (!this.inCheckAfterEnPassant(startSquare, targetSquare, epCapturedPawnSquare)) {
-                            this.moves.push(new Move(startSquare, targetSquare, Flag.enPassantCapture));
+                            output.push(new Move(startSquare, targetSquare, Flag.enPassantCapture));
                         }
 
                     }
@@ -330,27 +338,25 @@ export default class MoveGenerator {
         
     }
 
-	makePromotionMoves(fromSquare: number, toSquare: number) {
-		this.moves.push(new Move (fromSquare, toSquare, Flag.promoteToQueen));
+	makePromotionMoves(fromSquare: number, toSquare: number, output: Array<Move>) {
+		output.push(new Move (fromSquare, toSquare, Flag.promoteToQueen));
 		if (this.promotionsToGenerate == PromotionMode.All) {
-			this.moves.push(new Move (fromSquare, toSquare, Flag.promoteToKnight));
-			this.moves.push(new Move (fromSquare, toSquare, Flag.promoteToRook));
-			this.moves.push(new Move (fromSquare, toSquare, Flag.promoteToBishop));
+			output.push(new Move (fromSquare, toSquare, Flag.promoteToKnight));
+			output.push(new Move (fromSquare, toSquare, Flag.promoteToRook));
+			output.push(new Move (fromSquare, toSquare, Flag.promoteToBishop));
 		} else if (this.promotionsToGenerate == PromotionMode.QueenAndKnight) {
-			this.moves.push(new Move (fromSquare, toSquare, Flag.promoteToKnight));
+			output.push(new Move (fromSquare, toSquare, Flag.promoteToKnight));
 		}
-
 	}
 
 
 	isMovingAlongRay (rayDir: number, startSquare: number, targetSquare: number) {
 		const moveDir = pmd.directionLookup[targetSquare - startSquare + 63];
+        // console.log(rayDir.toString(2));
+        // console.log(moveDir.toString(2));
 		return (rayDir == moveDir || -rayDir == moveDir);
 	}
 
-	//boolean IsMovingAlongRay (int directionOffset, int absRayOffset) {
-	//return !((directionOffset == 1 || directionOffset == -1) && absRayOffset >= 7) && absRayOffset % directionOffset == 0;
-	//}
 
 	isPinned (square: number) {
 		return this.pinsExist && ((this.pinRayBitMask >> BigInt(square)) & BigInt(1)) != BigInt(0);
@@ -360,7 +366,8 @@ export default class MoveGenerator {
 		return this.inCheck && ((this.checkRayBitMask >> BigInt(square)) & BigInt(1)) != BigInt(0);
 	}
 
-	genSlidingAttackMap () {
+	genSlidingAttackMap() {
+        this.opponentSlidingAttackMap = BigInt(0);
 
 		const enemyRooks = this.board.rooks[this.opponentColorIndex];
 		for (let i = 0; i < enemyRooks.size(); i++) {
@@ -376,6 +383,7 @@ export default class MoveGenerator {
 		for (let i = 0; i < enemyBishops.size(); i++) {
 			this.updateSlidingAttackPiece (enemyBishops.get(i), 4, 8);
 		}
+        // console.log(this.opponentSlidingAttackMap.toString(2))
 	}
 
 	updateSlidingAttackPiece(startSquare: number, startDirIndex: number, endDirIndex: number) {
@@ -385,7 +393,8 @@ export default class MoveGenerator {
 			for (let n = 0; n < pmd.numSquaresToEdge[startSquare][directionIndex]; n++) {
 				const targetSquare = startSquare + currentDirOffset * (n + 1);
 				const targetSquarePiece = this.board.squares[targetSquare];
-				this.opponentSlidingAttackMap |= BigInt(0) << BigInt(targetSquare);
+				this.opponentSlidingAttackMap |= BigInt(1) << BigInt(targetSquare);
+                //break if encountering a piece in this direction 
 				if (targetSquare != this.friendlyKingSquare) {
 					if (targetSquarePiece != Piece.none) {
 						break;
@@ -407,6 +416,7 @@ export default class MoveGenerator {
 		}
 
 		for (let dir = startDirIndex; dir < endDirIndex; dir++) {
+            // console.log(dir);
 			const isDiagonal = dir > 3;
 
 			const n = pmd.numSquaresToEdge[this.friendlyKingSquare][dir];
@@ -416,8 +426,10 @@ export default class MoveGenerator {
 
 			for (let i = 0; i < n; i++) {
 				const squareIndex = this.friendlyKingSquare + directionOffset * (i + 1);
+                // console.log(squareIndex);
 				rayMask |= BigInt(1) << BigInt(squareIndex);
 				const piece = this.board.squares[squareIndex];
+                // console.log(piece);
 
 				// This square contains a piece
 				if (piece != Piece.none) {
@@ -434,9 +446,13 @@ export default class MoveGenerator {
 					// This square contains an enemy piece
 					else {
 						const pieceType = Piece.getPieceType(piece);
+                        // console.log(`pieceType ${pieceType}`)
 
+                        // console.log(Piece.isBishopOrQueen(pieceType))
+                        // console.log(isDiagonal)
 						// Check if piece is in bitmask of pieces able to move in current direction
 						if (isDiagonal && Piece.isBishopOrQueen(pieceType) || !isDiagonal && Piece.isRookOrQueen(pieceType)) {
+                            // console.log("here")
 							// Friendly piece blocks the check, so this is a pin
 							if (isFriendlyPieceAlongRay) {
 								this.pinsExist = true;
@@ -444,6 +460,7 @@ export default class MoveGenerator {
 							}
 							// No friendly piece blocking the attack, so this is a check
 							else {
+                                // console.log(`check ${squareIndex}`)
 								this.checkRayBitMask |= rayMask;
 								this.inDoubleCheck = this.inCheck; // if already in check, then this is double check
 								this.inCheck = true;
@@ -513,7 +530,7 @@ export default class MoveGenerator {
 	}
 
 	inCheckAfterEnPassant (startSquare: number, targetSquare: number, epCapturedPawnSquare: number) {
-		// Update board to reflect en-passant capture
+		// Update this.board to reflect en-passant capture
 		this.board.squares[targetSquare] = this.board.squares[startSquare];
 		this.board.squares[startSquare] = Piece.none;
 		this.board.squares[epCapturedPawnSquare] = Piece.none;
@@ -523,7 +540,7 @@ export default class MoveGenerator {
 			inCheckAfterEpCapture = true;
 		}
 
-		// Undo change to board
+		// Undo change to this.board
 		this.board.squares[targetSquare] = Piece.none;
 		this.board.squares[startSquare] = Piece.pawn | this.friendlyColor;
 		this.board.squares[epCapturedPawnSquare] = Piece.pawn | this.opponentColor;

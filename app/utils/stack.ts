@@ -28,4 +28,12 @@ export default class Stack<T> implements IStack<T> {
   size(): number {
     return this.storage.length;
   }
+
+  toString(): string {
+      let str = "";
+      for (const value of this.storage) {
+          str += " " + value;
+      }
+      return str
+  }
 }

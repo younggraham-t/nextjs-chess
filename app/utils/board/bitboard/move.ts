@@ -1,4 +1,5 @@
 import Piece from "./piece";
+import BoardRepresentation from "./board-representation";
 export class Flag {
     static none = 0;
     static enPassantCapture = 1;
@@ -83,5 +84,15 @@ export default class Move {
 
     isInvalid() {
         return this.move === 0;
+    }
+    static toString(move: Move) {
+         const startSquare = move.getStartSquare();
+         const targetSquare = move.getTargetSquare();
+         // console.log(targetSquare);
+         const startSquareName = BoardRepresentation.getSquareNameFromIndex(startSquare);
+         const targetSquareName = BoardRepresentation.getSquareNameFromIndex(targetSquare);
+         const moveFlag = Flag.getFlagName(move.getMoveFlag());
+         const output = startSquareName + targetSquareName + moveFlag;
+         return output 
     }
 }

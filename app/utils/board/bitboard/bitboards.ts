@@ -124,10 +124,11 @@ export default class BitBoard {
         }
 
         const epFileName = position.enPassant.slice(0,1);
-        const epFileIndex = BoardRepresentation.fileNames.indexOf(epFileName);
-        let epState = BoardRepresentation.getFileIndex(epFileIndex) << 4;
-        if (epFileIndex > 7 || epFileIndex < 0) {
-            epState = 8 << 4;
+        let epState = 0;
+        if (epFileName != "-") {
+            const epFileIndex = BoardRepresentation.fileNames.indexOf(epFileName) + 1;
+            // console.log(epFileIndex)
+            epState = (epFileIndex) << 4;
         }
         // console.log(epState.toString(2));
         this.halfMoveCounter = position.halfMove;
@@ -159,7 +160,8 @@ export default class BitBoard {
 	// The inSearch parameter controls whether this move should be recorded in the game history (for detecting three-fold repetition)
 	makeMove(move: Move, inSearch = false) {
         // console.log(move); 
-		const oldEnPassantFile = (this.currentGameState >> 4) & 15;
+        // console.log(this.currentGameState >> 4)
+		const oldEnPassantFile = (this.currentGameState >>> 4) & 15;
 		const originalCastleState = this.currentGameState & 15;
 		let newCastleState = originalCastleState;
 		this.currentGameState = 0;
@@ -315,7 +317,7 @@ export default class BitBoard {
 
 		const originalCastleState = this.currentGameState & 0b1111;
 
-		const capturedPieceType = (this.currentGameState >> 8) & 63;
+		const capturedPieceType = (this.currentGameState >>> 8) & 63;
 		const capturedPiece = (capturedPieceType == 0) ? 0 : capturedPieceType | this.opponentColor;
 
 		const movedFrom = move.getStartSquare();
@@ -332,7 +334,7 @@ export default class BitBoard {
 		this.zobristKey ^=this.zobrist.piecesArray[movedPieceType][this.colorToMoveIndex][movedFrom]; // add piece back to square it moved from
 		this.zobristKey ^=this.zobrist.piecesArray[toSquarePieceType][this.colorToMoveIndex][movedTo]; // remove piece from square it moved to
 
-		const oldEnPassantFile = (this.currentGameState >> 4) & 15;
+		const oldEnPassantFile = (this.currentGameState >>> 4) & 15;
 		if (oldEnPassantFile != 0)
 			this.zobristKey ^=this.zobrist.enPassantFile[oldEnPassantFile];
 
@@ -391,7 +393,10 @@ export default class BitBoard {
 		}
 
 		this.gameStateHistory.pop(); // removes current state from history
+        // console.log((this.currentGameState >> 4) & 15)
+        // console.log(this.gameStateHistory.toString())
 		this.currentGameState = this.gameStateHistory.peek(); // sets current state to previous state in history
+        // console.log((this.currentGameState >> 4) & 15)
 
 		this.halfMoveCounter = (this.currentGameState & 4294950912) >>> 14;
 		const newEnPassantFile = (this.currentGameState >>> 4) & 15;

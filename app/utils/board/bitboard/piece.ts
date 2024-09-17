@@ -47,7 +47,7 @@ export default class Piece {
     }
 
     static isBishopOrQueen(piece: number) {
-        return (piece & 0b101) == 0b110;
+        return (piece & 0b101) == 0b101;
     }
 
     static isSlidingPiece(piece: number) {
