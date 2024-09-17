@@ -1,9 +1,9 @@
 "use client";
-import {useState, useEffect, SetStateAction, Dispatch, useRef} from "react";
+import {useState, useEffect} from "react";
 import {Position, SquareStart} from "@/app/utils/board/posistions";
 import Square, { SquareRef } from "./square";
 import {useRefs} from "@/app/utils/use-refs";
-import {removeHighlights, removeLegalMoves, moveStringToMove, getSquares, squareIdToString} from "@/app/utils/board/board-utils";
+import {removeHighlights, removeLegalMoves, getSquares, squareIdToString} from "@/app/utils/board/board-utils";
 import {GameColor} from "@/app/utils/board/posistions";
 import {positionToFen} from "@/app/utils/board/fen";
 import BitBoard from "@/app/utils/board/bitboard/bitboards";
@@ -30,11 +30,12 @@ export default function Board(props: {position: Position}) {
     const modalConfirmation = useConfirmationModalContext();
 
     useEffect(() => { 
-        // console.log(testPerft(positionToFen(position), 1));
+        console.log(positionToFen(position));
         const board = new BitBoard(positionToFen(position));
-        const moveGenerator = new MoveGenerator(board);
-        const moves = moveGenerator.generateMoves();
-        console.log(moveGenerator.returnMoves(moves));
+        const moveGenerator = new MoveGenerator();
+        const moves =  new Array<Move>();
+		moveGenerator.generateMoves(board, moves);
+        console.log(MoveGenerator.returnMoves(moves));
         setValidMoves(moves);
         removeHighlights(refsByKey, lastMove);
     }, [position, lastMove, refsByKey]);
@@ -54,8 +55,10 @@ export default function Board(props: {position: Position}) {
             updateSquares = position.squares;
         }
         const updateActiveColor = activeColor?? position.activeColor;
-        const updateCastling = castling?? position.castling;
-        const updateEnPassant = enPassant?? position.enPassant;
+        let updateCastling = castling?? position.castling;
+        if (updateCastling == "") updateCastling = "-";
+        let updateEnPassant = enPassant?? position.enPassant;
+        if (updateEnPassant == "") updateEnPassant = "-";
         const updateHalfMove = halfMove?? position.halfMove;
         const updateFullMove = fullMove?? position.fullMove;
 
@@ -229,6 +232,7 @@ export default function Board(props: {position: Position}) {
 
                         break;
                     case Flag.promoteToQueen:
+                        console.log("here")
                         curPiece = curPieceColor + Piece.queen;
                         console.log(curPiece)
                         break;
@@ -247,7 +251,12 @@ export default function Board(props: {position: Position}) {
                 }
             }
             //put curPiece on new square
-            clickedSquare.handleSetPiece(curPiece, clickedSquare)
+            clickedSquare.handleSetPiece(curPiece, clickedSquare);
+            const clickedSquareRef = refsByKey[clickedSquare.id];
+            if (clickedSquareRef) {
+                clickedSquareRef.handleSetPiece(curPiece, clickedSquareRef)
+            }
+            // console.log(clickedSquare.piece);
             const lastMoveStart = clickedSquare;
             //remove piece from old square
             curSquareRef.handleSetPiece(Piece.none, curSquareRef);
