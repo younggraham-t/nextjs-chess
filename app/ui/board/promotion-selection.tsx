@@ -1,5 +1,6 @@
 import { xTranslations, pieceTypes } from "./square-tw-classes";
 import { MouseEvent } from "react";
+import { Flag } from "@/app/utils/board/bitboard/move";
 
 export default function PromotionSelection(props: {x: number, y: number, handleClick: (value: number) => void, handleCancel: () => void}) {
 
@@ -34,10 +35,10 @@ export default function PromotionSelection(props: {x: number, y: number, handleC
         let id = 0;
         if (piece) {
             const pieceTypeToId: Record<string, number> = {
-                "q": 3,
-                "n": 4,
-                "r": 5,
-                "b": 6,
+                "q": Flag.promoteToQueen,
+                "n": Flag.promoteToKnight,
+                "r": Flag.promoteToRook,
+                "b": Flag.promoteToBishop,
             }
             id = pieceTypeToId[piece.slice(1)];
         }
