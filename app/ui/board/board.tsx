@@ -1,7 +1,7 @@
 "use client";
 import {useState, useEffect} from "react";
 import {Position} from "@/app/utils/board/posistions";
-import Square, { SquareRef } from "./square";
+import Square from "./square";
 import {useRefs} from "@/app/utils/use-refs";
 import {removeHighlights, removeLegalMoves} from "@/app/utils/board/board-utils";
 import {GameColor} from "@/app/utils/board/posistions";
@@ -14,12 +14,6 @@ import Piece from "@/app/utils/board/bitboard/piece";
 import {useConfirmationModalContext} from "./confirmation";
 import Coordinates from "./coordinates";
 
-
-
-export type LastMoveRefs = {
-    lastMoveStart: SquareRef,
-    lastMoveEnd: SquareRef,
-}
 
 export default function Board(props: {position: Position}) {
     const [ validMoves, setValidMoves ] = useState<Array<Move>>([]); 
@@ -47,7 +41,7 @@ export default function Board(props: {position: Position}) {
     const handleSquareClicked = async (clickedSquareId: string, moveFlag = 0, shiftOrCtrl = false) => {
         const clickedSquareRef = refsByKey[clickedSquareId];
         if (clickedSquareRef) {
-        console.log(Piece.toString(clickedSquareRef.piece) ? Piece.toString(clickedSquareRef.piece) : clickedSquareId);
+        // console.log(Piece.toString(clickedSquareRef.piece) ? Piece.toString(clickedSquareRef.piece) : clickedSquareId);
         const clickedSquareX = parseInt(clickedSquareId.slice(0,1));
         const clickedSquareY = parseInt(clickedSquareId.slice(1));
         //check if moveFlag == 3 (meaning it is a promotion)
@@ -128,10 +122,13 @@ export default function Board(props: {position: Position}) {
         if (move.getMoveFlag() == Flag.canceledMove) {
             return;
         }
-
+        //use a bit board to make a move and get the new position
         const board = new BitBoard(positionToFen(position));
         board.makeMove(move);
         const newFen = currentFen(board);
+        const newPosition = fenToPosition(newFen);
+
+        //update the new position with the last move ids
         const startSquare = BoardRepresentation.indexToSquareStart(move.getStartSquare())
         const targetSquare = BoardRepresentation.indexToSquareStart(move.getTargetSquare())
         const startSquareId = `${startSquare.x}${startSquare.y}`
@@ -140,10 +137,12 @@ export default function Board(props: {position: Position}) {
             startSquareId,
             targetSquareId,
         ]
-        const newPosition = fenToPosition(newFen);
         newPosition.lastMoveIds = lastMoveIds;
+
+        //update the position to the new position
         handleSetPosition(newPosition);
 
+        //remove previously shown highlights execpt for those of the current move
         removeLegalMoves(refsByKey);
         removeHighlights(refsByKey, newPosition.lastMoveIds) 
 
@@ -155,7 +154,10 @@ export default function Board(props: {position: Position}) {
             // console.log(curId);
             const curSquareRef = refsByKey[curId];
             if (curSquareRef) {
+                //update every square with the correct piece
                 curSquareRef.handleSetPiece(square.piece, curSquareRef);
+
+                //hightlight the squares of the last move
                 if (position.lastMoveIds.includes(curId)) {
                     // console.log(square)
                     curSquareRef.setHover(true);
@@ -166,6 +168,7 @@ export default function Board(props: {position: Position}) {
 
     }
     
+    //create the initial array of squares
     const squares = props.position.squares.map((square) => {
         const id = `${square.x}${square.y}`;
         return (
@@ -177,16 +180,14 @@ export default function Board(props: {position: Position}) {
             piece={square.piece} 
             handleSquareClicked={handleSquareClicked} 
             ref={element => setRef(element, id)}
-
             />
            )
     })
     
     return (
-            <div>
-                <Coordinates isWhitePlayer={true}/>
-                {squares}
-            </div>
-
+        <div>
+            <Coordinates isWhitePlayer={true}/>
+            {squares}
+        </div>
     )
 }

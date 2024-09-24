@@ -4,10 +4,10 @@ import BitBoard from './bitboard/bitboards';
 import BoardRepresentation from './bitboard/board-representation';
 import Piece from './bitboard/piece';
 
-export const startFen =
-    'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-export const fenToPosition =
-    (fen: string) => {
+export const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+
+
+export const fenToPosition = (fen: string) => {
         const squares = new Array<SquareStart>();
         // console.log(fen);
 
@@ -74,8 +74,7 @@ export const fenToPosition =
     }
 
 
-export const positionToFen =
-    (position: Position) => {
+export const positionToFen = (position: Position) => {
         const {squares} = position;
         // console.log(squares);
         const ranks = Array<string>();
