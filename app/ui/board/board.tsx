@@ -12,6 +12,7 @@ import Move, {Flag} from "@/app/utils/board/bitboard/move";
 import BoardRepresentation from "@/app/utils/board/bitboard/board-representation";
 import Piece from "@/app/utils/board/bitboard/piece";
 import {useConfirmationModalContext} from "./confirmation";
+import Coordinates from "./coordinates";
 
 
 
@@ -292,8 +293,10 @@ export default function Board(props: {position: Position}) {
             />
            )
     })
+    
     return (
-            <div >
+            <div>
+                <Coordinates isWhitePlayer={true}/>
                 {squares}
             </div>
 
