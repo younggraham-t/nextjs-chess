@@ -1,5 +1,6 @@
-import Piece from "./piece";
-import BoardRepresentation from "./board-representation";
+import BoardRepresentation from './board-representation';
+import Piece from './piece';
+
 export class Flag {
     static none = 0;
     static enPassantCapture = 1;
@@ -9,33 +10,33 @@ export class Flag {
     static promoteToRook = 5;
     static promoteToBishop = 6;
     static pawnTwoForward = 7;
+    static canceledMove = 8;
 
     static getFlagName(flag: number) {
         const flagsToNames: Record<number, string> = {
-            0: "",
-            1: "ep",
-            2: "c",
-            3: "pq",
-            4: "pn",
-            5: "pr",
-            6: "pb",
-            7: "ptf",
-        }    
+            0: '',
+            1: 'ep',
+            2: 'c',
+            3: 'pq',
+            4: 'pn',
+            5: 'pr',
+            6: 'pb',
+            7: 'ptf',
+        }
 
         return flagsToNames[flag];
     }
 }
 export default class Move {
-    
     private move: number = 0;
 
     private startSquareMask = 0b0000000000111111;
-	private targetSquareMask = 0b0000111111000000;
-	private flagMask = 0b1111000000000000;
+    private targetSquareMask = 0b0000111111000000;
+    private flagMask = 0b1111000000000000;
 
 
     constructor(from: number, to: number, flags = 0) {
-        this.move = ((flags & 0xf) <<12) | ((to & 0x3f) << 6) | (from & 0x3f);
+        this.move = ((flags & 0xf) << 12) | ((to & 0x3f) << 6) | (from & 0x3f);
     }
 
     getStartSquare() {
@@ -52,11 +53,12 @@ export default class Move {
 
     isPromotion() {
         const flag = this.getMoveFlag();
-        return flag == Flag.promoteToRook || flag == Flag.promoteToQueen || flag == Flag.promoteToBishop || flag == Flag.promoteToKnight;
+        return flag == Flag.promoteToRook || flag == Flag.promoteToQueen ||
+            flag == Flag.promoteToBishop || flag == Flag.promoteToKnight;
     }
 
     getPromotionPieceType() {
-        switch(this.getMoveFlag()) {
+        switch (this.getMoveFlag()) {
             case Flag.promoteToRook:
                 return Piece.rook;
             case Flag.promoteToQueen:
@@ -71,7 +73,7 @@ export default class Move {
     }
 
     getInvalidMove() {
-        return new Move(0,0,0);
+        return new Move(0, 0, 0);
     }
 
     static isSameMove(a: Move, b: Move) {
@@ -86,13 +88,15 @@ export default class Move {
         return this.move === 0;
     }
     static toString(move: Move) {
-         const startSquare = move.getStartSquare();
-         const targetSquare = move.getTargetSquare();
-         // console.log(targetSquare);
-         const startSquareName = BoardRepresentation.getSquareNameFromIndex(startSquare);
-         const targetSquareName = BoardRepresentation.getSquareNameFromIndex(targetSquare);
-         const moveFlag = Flag.getFlagName(move.getMoveFlag());
-         const output = startSquareName + targetSquareName + moveFlag;
-         return output 
+        const startSquare = move.getStartSquare();
+        const targetSquare = move.getTargetSquare();
+        // console.log(targetSquare);
+        const startSquareName =
+            BoardRepresentation.getSquareNameFromIndex(startSquare);
+        const targetSquareName =
+            BoardRepresentation.getSquareNameFromIndex(targetSquare);
+        const moveFlag = Flag.getFlagName(move.getMoveFlag());
+        const output = startSquareName + targetSquareName + moveFlag;
+        return output
     }
 }
