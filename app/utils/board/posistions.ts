@@ -12,10 +12,11 @@ export type Position = {
     enPassant: string,
     halfMove: number,
     fullMove: number,
+    lastMoveIds: Array<string>,
 }
 
 
 export enum GameColor {
-    white = "w",
-    black = "b",
+    white = 'w',
+    black = 'b',
 }

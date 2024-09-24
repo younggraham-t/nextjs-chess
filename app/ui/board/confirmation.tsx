@@ -1,5 +1,6 @@
 import React, {useContext, useRef, useState} from "react";
 import PromotionSelection from "./promotion-selection";
+import { Flag } from "@/app/utils/board/bitboard/move";
 
 type UseModalShowReturnType = {
     show: boolean;
@@ -55,7 +56,7 @@ const ConfirmationModalContextProvider: React.FC<ConfirmationModalContextProvide
     };
 
     const handleCancel = () => {
-        resolver.current && resolver.current(-1);
+        resolver.current && resolver.current(Flag.canceledMove);
         onHide();
     };
 
