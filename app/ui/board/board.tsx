@@ -1,5 +1,5 @@
 "use client";
-import {useState, useEffect} from "react";
+import {useState, useEffect, Suspense} from "react";
 import {Position} from "@/app/utils/board/posistions";
 import Square from "./square";
 import {useRefs} from "@/app/utils/use-refs";
@@ -13,9 +13,10 @@ import BoardRepresentation from "@/app/utils/board/bitboard/board-representation
 import Piece from "@/app/utils/board/bitboard/piece";
 import {useConfirmationModalContext} from "./confirmation";
 import Coordinates from "./coordinates";
+import {BoardSkeleton} from "./skeletons";
 
 
-export default function Board(props: {position: Position}) {
+export default function Board(props: {position: Position, disabled?: boolean}) {
     const [ validMoves, setValidMoves ] = useState<Array<Move>>([]); 
     const {refsByKey, setRef} = useRefs();
     const [ curSquare, setCurSquare ] = useState<string | null>(null);
@@ -39,6 +40,7 @@ export default function Board(props: {position: Position}) {
     }
 
     const handleSquareClicked = async (clickedSquareId: string, moveFlag = 0, shiftOrCtrl = false) => {
+        if (props.disabled) return;
         const clickedSquareRef = refsByKey[clickedSquareId];
         if (clickedSquareRef) {
         // console.log(Piece.toString(clickedSquareRef.piece) ? Piece.toString(clickedSquareRef.piece) : clickedSquareId);
@@ -186,8 +188,10 @@ export default function Board(props: {position: Position}) {
     
     return (
         <div>
-            <Coordinates isWhitePlayer={true}/>
-            {squares}
+            <Suspense fallback={<BoardSkeleton/>}>
+                <Coordinates isWhitePlayer={true}/>
+                {squares}
+            </Suspense>
         </div>
     )
 }
