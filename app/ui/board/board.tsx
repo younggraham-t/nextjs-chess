@@ -1,5 +1,5 @@
 "use client";
-import {useState, useEffect, Suspense} from "react";
+import {useState, useEffect, useCallback, Suspense} from "react";
 import {Position} from "@/app/utils/board/posistions";
 import Square from "./square";
 import {useRefs} from "@/app/utils/use-refs";
@@ -14,6 +14,7 @@ import Piece from "@/app/utils/board/bitboard/piece";
 import {useConfirmationModalContext} from "./confirmation";
 import Coordinates from "./coordinates";
 import {BoardSkeleton} from "./skeletons";
+import {useBoardContext} from "./board-context";
 
 
 export default function Board(props: {position: Position, disabled?: boolean}) {
@@ -22,25 +23,14 @@ export default function Board(props: {position: Position, disabled?: boolean}) {
     const [ curSquare, setCurSquare ] = useState<string | null>(null);
     const [ position, setPosition ] = useState<Position>(props.position);
     const modalConfirmation = useConfirmationModalContext();
+    const boardContext = useBoardContext();
 
-    useEffect(() => { 
-        console.log(positionToFen(position));
-        const board = new BitBoard(positionToFen(position));
-        const moveGenerator = new MoveGenerator();
-        const moves =  new Array<Move>();
-		moveGenerator.generateMoves(board, moves);
-        console.log(MoveGenerator.returnMoves(moves));
-        setValidMoves(moves);
-    }, [position, refsByKey]);
-
-    const handleSetPosition = (newPosition: Position) => {
-        // console.log(newPosition.lastMoveIds);
-        setPosition(newPosition);
-        handleUpdateSquares(newPosition);
-    }
 
     const handleSquareClicked = async (clickedSquareId: string, moveFlag = 0, shiftOrCtrl = false) => {
         if (props.disabled) return;
+        // console.log(boardContext.previousPositions);
+        // console.log(boardContext.currentPositionIndex);
+        if (boardContext.currentPositionIndex != boardContext.previousPositions.length - 1) return;
         const clickedSquareRef = refsByKey[clickedSquareId];
         if (clickedSquareRef) {
         // console.log(Piece.toString(clickedSquareRef.piece) ? Piece.toString(clickedSquareRef.piece) : clickedSquareId);
@@ -125,10 +115,13 @@ export default function Board(props: {position: Position, disabled?: boolean}) {
             return;
         }
         //use a bit board to make a move and get the new position
-        const board = new BitBoard(positionToFen(position));
+        const oldFen = positionToFen(position);
+        // console.log(oldFen);
+        const board = new BitBoard(oldFen);
         board.makeMove(move);
         const newFen = currentFen(board);
-        const newPosition = fenToPosition(newFen);
+        // console.log(newFen);
+        const newPosition = fenToPosition(newFen, oldFen, move);
 
         //update the new position with the last move ids
         const startSquare = BoardRepresentation.indexToSquareStart(move.getStartSquare())
@@ -142,6 +135,8 @@ export default function Board(props: {position: Position, disabled?: boolean}) {
         newPosition.lastMoveIds = lastMoveIds;
 
         //update the position to the new position
+        boardContext.pushToPreviousPositions(newPosition)
+        boardContext.setPositionIndex(boardContext.currentPositionIndex + 1);
         handleSetPosition(newPosition);
 
         //remove previously shown highlights execpt for those of the current move
@@ -149,8 +144,10 @@ export default function Board(props: {position: Position, disabled?: boolean}) {
         removeHighlights(refsByKey, newPosition.lastMoveIds) 
 
     }
+    
 
-    const handleUpdateSquares = (position: Position) => {
+
+    const handleUpdateSquares = useCallback((position: Position) => {
         position.squares.map((square) => {
             const curId = `${square.x}${square.y}`
             // console.log(curId);
@@ -168,7 +165,61 @@ export default function Board(props: {position: Position, disabled?: boolean}) {
             }
         })   
 
-    }
+    }, [refsByKey])
+
+    const handleSetPosition = useCallback((newPosition?: Position) => {
+        if (newPosition) {
+            // console.log(newPosition.lastMoveIds);
+            setPosition(newPosition);
+            handleUpdateSquares(newPosition);
+            removeHighlights(refsByKey, newPosition.lastMoveIds);
+            removeLegalMoves(refsByKey)
+        }
+    }, [setPosition, handleUpdateSquares, refsByKey])
+
+    const handleUnMakeMove = useCallback(() => {
+        if(boardContext.currentPositionIndex <= 0) return;
+        boardContext.setPositionIndex(boardContext.currentPositionIndex - 1);
+    }, [boardContext])
+
+    const handleReMakeMove = useCallback(() => {
+        if (boardContext.currentPositionIndex == boardContext.previousPositions.length - 1) return;
+        boardContext.setPositionIndex(boardContext.currentPositionIndex + 1);
+        // console.log(previousPositions)
+    }, [boardContext])
+
+
+    const handleKeyBoardInput = useCallback((event: KeyboardEvent) => {
+        // console.log(event)
+        switch (event.code) {
+            case "ArrowLeft":
+                handleUnMakeMove();
+                break;
+            case "ArrowRight":
+                handleReMakeMove();
+                break;
+        }
+
+    }, [handleUnMakeMove, handleReMakeMove])
+
+    useEffect(() => { 
+        if (position !== boardContext.previousPositions[boardContext.currentPositionIndex]) {
+            handleSetPosition(boardContext.previousPositions[boardContext.currentPositionIndex]);
+        }
+        // console.log(positionToFen(position));
+        const board = new BitBoard(positionToFen(position));
+        const moveGenerator = new MoveGenerator();
+        const moves =  new Array<Move>();
+		moveGenerator.generateMoves(board, moves);
+        // console.log(MoveGenerator.returnMoves(moves));
+        setValidMoves(moves);
+        document.addEventListener('keyup', handleKeyBoardInput)
+
+        return () => {
+            document.removeEventListener('keyup', handleKeyBoardInput)
+        }
+    }, [position, refsByKey, handleKeyBoardInput, handleSetPosition, boardContext.currentPositionIndex, boardContext]);
+
     
     //create the initial array of squares
     const squares = props.position.squares.map((square) => {
