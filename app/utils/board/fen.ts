@@ -3,11 +3,14 @@ import {GameColor, Position, SquareStart} from '@/app/utils/board/posistions';
 import BitBoard from './bitboard/bitboards';
 import BoardRepresentation from './bitboard/board-representation';
 import Piece from './bitboard/piece';
+import Move from './bitboard/move';
 
 export const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 
+export const gxh8NMate = "7b/5kP1/7Q/8/8/8/4R1R1/4K3 w - - 0 1"
 
-export const fenToPosition = (fen: string) => {
+
+export const fenToPosition = (fen: string, oldFen?: string, lastMove?: Move): Position => {
         const squares = new Array<SquareStart>();
         // console.log(fen);
 
@@ -66,6 +69,9 @@ export const fenToPosition = (fen: string) => {
             halfMove,
             fullMove,
             lastMoveIds,
+            lastMove: lastMove?? Move.getInvalidMove(),
+            previousFen: oldFen?? "",
+
         }
 
 
@@ -217,7 +223,8 @@ export const currentFen = (board: BitBoard) => {
     // Full-move count (should be one at start, and increase after each move by
     // black)
     fen += ' ';
-    fen += (board.fullMove / 2) + 1;
+    // console.log(board.fullMove)
+    fen += board.fullMove;
 
     return fen;
 }

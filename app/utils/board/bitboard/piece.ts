@@ -65,7 +65,9 @@ export default class Piece {
        if (piece === Piece.none) {
            return "";
        }
-       string += Piece.getColor(piece) === Piece.white ? "w" : "b";
+       if (Piece.getColor(piece) != 0) {
+            string += Piece.getColor(piece) === Piece.white ? "w" : "b";
+       }
        const pieceType = Piece.getPieceType(piece);
        if (pieceType === Piece.pawn) {
            string += "p";

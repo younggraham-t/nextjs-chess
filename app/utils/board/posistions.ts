@@ -1,3 +1,4 @@
+import Move from "./bitboard/move"
 
 export type SquareStart = {
     x: number,
@@ -13,6 +14,8 @@ export type Position = {
     halfMove: number,
     fullMove: number,
     lastMoveIds: Array<string>,
+    lastMove: Move,
+    previousFen: string,
 }
 
 

@@ -15,7 +15,7 @@ export default class MoveGenerator {
     private genQuiets: boolean = true;
     private moves: Array<Move> = [];
     private board: BitBoard = new BitBoard("8/8/8/8/8/8/8/8 - - -");
-    private inCheck: boolean = false;
+    inCheck: boolean = false;
     private inDoubleCheck: boolean = false;
     private pinsExist: boolean = false;
     private checkRayBitMask: bigint = BigInt(0);

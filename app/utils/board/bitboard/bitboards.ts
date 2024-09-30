@@ -138,6 +138,7 @@ export default class BitBoard {
         this.currentGameState = initialGameState;
         // console.log(initialGameState.toString(2))
 
+        // console.log(position.fullMove)
         this.fullMove = position.fullMove;
         // console.log(this.rooks);
         // console.log(this.kings);
@@ -290,7 +291,8 @@ export default class BitBoard {
 		this.activeColor = (this.whiteToMove) ? Piece.white : Piece.black;
 		this.opponentColor = (this.whiteToMove) ? Piece.black : Piece.white;
 		this.colorToMoveIndex = 1 - this.colorToMoveIndex;
-		this.fullMove++;
+		this.fullMove = this.whiteToMove ? this.fullMove + 1 : this.fullMove;
+        // console.log(this.fullMove);
 		this.halfMoveCounter++;
 
 		if (!inSearch) {
@@ -409,7 +411,7 @@ export default class BitBoard {
 			this.zobristKey ^=this.zobrist.castlingRights[newCastleState]; // add new castling rights state
 		}
 
-		this.fullMove--;
+		this.fullMove = this.activeColor == Piece.black ? this.fullMove-- : this.fullMove;
 
 		if (!inSearch && this.repetitionPositionHistory.size() > 0) {
 			this.repetitionPositionHistory.pop();
