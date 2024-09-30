@@ -51,7 +51,7 @@ export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareP
     }));
 
     const handleRightClickEvent = (e: MouseEvent<HTMLDivElement>) => {
-        console.log(`square ${positionX}, ${positionY} right click`);
+        // console.log(`square ${positionX}, ${positionY} right click`);
         setHighlight(!highlight);
         e.preventDefault();
     };
@@ -66,7 +66,7 @@ export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareP
 
 
     const pieceClass = pieceTypes.get(Piece.toString(piece));
-    let className = pieceClass + " ";
+    let className = "";
     className += xTranslations.get(positionX) + " ";
     className += yTranslations.get(positionY);
 
@@ -75,14 +75,15 @@ export default forwardRef<SquareRef, SquareProps>(function Square(props: SquareP
             <div className={clsx(
                 `w-[12.5%] h-[12.5%] absolute bg-cover transform ${className}`,
                         {
-                             "bg-red-500": highlight,
-                             "bg-lime-300": hover,
+                             "bg-red-500/75": highlight,
+                             "bg-lime-300/75": hover,
                         }
                 )}
                 onClick={handleLeftClickEvent} 
                 onContextMenu={handleRightClickEvent}
                 id={props.id}
             >
+                <div className={`w-full h-full absolute bg-cover ${pieceClass}`}></div>
                 {
                 isLegalMove && piece === Piece.none && 
                 <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
