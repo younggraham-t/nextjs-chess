@@ -3,12 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev & pnpm run dev:rust",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+	"dev:rust": "vercel dev --listen 3001"
+
   },
   "dependencies": {
     "@japan-d2/random-bigint": "^0.0.5",
@@ -33,6 +35,7 @@
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "ts-jest": "^29.2.5",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vercel": "^50.28.0"
   }
 }
